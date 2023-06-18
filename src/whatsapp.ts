@@ -1,36 +1,36 @@
 import makeWASocket, {
-  DisconnectReason,
-  type WAMessageContent,
-  type WAMessageKey,
+  DisconnectReason,  
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
-  makeInMemoryStore,
-  useMultiFileAuthState,
-  proto
+  useMultiFileAuthState,    
 } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import NodeCache from "node-cache";
 import MAIN_LOGGER from "./utils/logger";
-import fs from 'fs'
+import fs from "fs";
+import type { Server } from "socket.io";
+import { toDataURL } from "qrcode";
+import { prisma } from "./utils/db";
+import { sessions } from ".";
 
 const logger = MAIN_LOGGER.child({});
 logger.level = "trace";
 
 const msgRetryCounterCache = new NodeCache();
 
-const store = makeInMemoryStore({ logger });
-store?.readFromFile("./baileys_store_multi.json");
+// const store = makeInMemoryStore({ logger });
+// store?.readFromFile("./baileys_store_multi.json");
 
 // save every 10s
-setInterval(() => {
-  store?.writeToFile("./baileys_store_multi.json");
-}, 10_000);
+// setInterval(() => {
+//   store?.writeToFile("./baileys_store_multi.json");
+// }, 10_000);
 
-export async function connectToWhatsApp() {
-  const { state, saveCreds } = await useMultiFileAuthState("auth_info");
+export async function connectToWhatsApp(number: string, io: Server) {
+  console.log("SOCKET READY");
+  const { state, saveCreds } = await useMultiFileAuthState(`${number}`);
   const { version, isLatest } = await fetchLatestBaileysVersion();
   console.log(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
-
   const sock = makeWASocket({
     // can provide additional config here
     version,
@@ -41,11 +41,9 @@ export async function connectToWhatsApp() {
     },
     msgRetryCounterCache,
     generateHighQualityLinkPreview: true,
-    getMessage,
   });
 
-  store?.bind(sock.ev);
-
+  // store?.bind(sock.ev);
   sock.ev.process(
     // events is a map for event name => event data
     async (events) => {
@@ -53,17 +51,53 @@ export async function connectToWhatsApp() {
       // maybe it closed, or we received all offline message or connection opened
       if (events["connection.update"]) {
         const update = events["connection.update"];
-        const { connection, lastDisconnect } = update;
+        const { connection, lastDisconnect, qr } = update;
+        if (qr?.length) {
+          let qrcode = await toDataURL(qr);
+          io.emit("qrcode", {
+            token: number,
+            data: qrcode,
+            message: "Scan QR Code",
+          });
+        }
+
+        if (connection === "open") {
+          const device = await prisma.numbers.findFirst({
+            where: { body: number },
+          });
+          const updateStatus = await prisma.numbers.update({
+            where: { id: device?.id },
+            data: { status: "Connected" },
+          });
+          const [result] = await sock.onWhatsApp(sock.user?.id ?? "");
+          const ppUrl = await sock.profilePictureUrl(result.jid, "image");
+          io.emit("connection-open", {
+            token: result.jid.replace(/\D/g, ""),
+            user: { name: sock.user?.name, id: result.jid.replace(/\D/g, "") },
+            ppUrl,
+          });
+        }
         if (connection === "close") {
           // reconnect if not logged out
+          if ((lastDisconnect?.error as Boom)?.output.statusCode === 515) {
+            connectToWhatsApp(`${number}`, io);
+          }
           if (
             (lastDisconnect?.error as Boom)?.output?.statusCode !==
             DisconnectReason.loggedOut
           ) {
-            connectToWhatsApp();
-          } else {    
-            fs.rmdirSync('./auth_info',{recursive: true})   
-            connectToWhatsApp()                               
+            // console.log(lastDisconnect?.error?.name)
+            // connectToWhatsApp(`${number}`, io);            
+          } else {
+            fs.rmdirSync(`./${number}`, { recursive: true });
+            connectToWhatsApp(`${number}`, io);
+            const device = await prisma.numbers.findFirst({
+              where: { body: number },
+            });
+            const updateStatus = await prisma.numbers.update({
+              where: { id: device?.id },
+              data: { status: "Disconnect" },
+            });
             console.log("Connection closed. You are logged out.");
           }
         }
@@ -80,7 +114,6 @@ export async function connectToWhatsApp() {
       if (events["messages.upsert"]) {
         const upsert = events["messages.upsert"];
         console.log("recv messages ", JSON.stringify(upsert, undefined, 2));
-
         if (upsert.type === "notify") {
           for (const msg of upsert.messages) {
             if (!msg.key.fromMe) {
@@ -94,17 +127,5 @@ export async function connectToWhatsApp() {
     }
   );
 
-  return sock;
-
-  async function getMessage(
-    key: WAMessageKey
-  ): Promise<WAMessageContent | undefined> {
-    if (store) {
-      const msg = await store.loadMessage(key.remoteJid!, key.id!);
-      return msg?.message || undefined;
-    }
-
-    // only if store is present
-    return proto.Message.fromObject({});
-  }
+  sessions.set(number, sock)
 }
