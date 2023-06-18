@@ -27,10 +27,10 @@ const msgRetryCounterCache = new NodeCache();
 // }, 10_000);
 
 export async function connectToWhatsApp(number: string, io: Server) {
-  console.log("SOCKET READY");
+  logger.info("SOCKET READY");
   const { state, saveCreds } = await useMultiFileAuthState(`${number}`);
   const { version, isLatest } = await fetchLatestBaileysVersion();
-  console.log(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
+  logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
   const sock = makeWASocket({
     // can provide additional config here
     version,
@@ -65,7 +65,7 @@ export async function connectToWhatsApp(number: string, io: Server) {
           const device = await prisma.numbers.findFirst({
             where: { body: number },
           });
-          const updateStatus = await prisma.numbers.update({
+          await prisma.numbers.update({
             where: { id: device?.id },
             data: { status: "Connected" },
           });
@@ -94,7 +94,7 @@ export async function connectToWhatsApp(number: string, io: Server) {
             const device = await prisma.numbers.findFirst({
               where: { body: number },
             });
-            const updateStatus = await prisma.numbers.update({
+            await prisma.numbers.update({
               where: { id: device?.id },
               data: { status: "Disconnect" },
             });
@@ -102,7 +102,7 @@ export async function connectToWhatsApp(number: string, io: Server) {
           }
         }
 
-        console.log("connection update", update);
+        console.log("CONNECTION UPDATE", update);
       }
 
       // credentials updated -- save them
