@@ -35,7 +35,7 @@ const qrcode_1 = require("qrcode");
 const db_1 = require("./utils/db");
 const _1 = require(".");
 const logger = logger_1.default.child({});
-logger.level = "trace";
+logger.level = 'trace';
 const msgRetryCounterCache = new node_cache_1.default();
 // const store = makeInMemoryStore({ logger });
 // store?.readFromFile("./baileys_store_multi.json");
@@ -44,10 +44,10 @@ const msgRetryCounterCache = new node_cache_1.default();
 //   store?.writeToFile("./baileys_store_multi.json");
 // }, 10_000);
 async function connectToWhatsApp(number, io) {
-    logger.info("SOCKET READY");
+    logger.info('SOCKET READY');
     const { state, saveCreds } = await (0, baileys_1.useMultiFileAuthState)(`${number}`);
     const { version, isLatest } = await (0, baileys_1.fetchLatestBaileysVersion)();
-    logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
+    logger.info(`using WA v${version.join('.')}, isLatest: ${isLatest}`);
     const sock = (0, baileys_1.default)({
         // can provide additional config here
         version,
@@ -66,42 +66,41 @@ async function connectToWhatsApp(number, io) {
         var _a, _b, _c, _d, _e, _f;
         // something about the connection changed
         // maybe it closed, or we received all offline message or connection opened
-        if (events["connection.update"]) {
-            const update = events["connection.update"];
+        if (events['connection.update']) {
+            const update = events['connection.update'];
             const { connection, lastDisconnect, qr } = update;
             if (qr === null || qr === void 0 ? void 0 : qr.length) {
                 let qrcode = await (0, qrcode_1.toDataURL)(qr);
-                io.emit("qrcode", {
+                io.emit('qrcode', {
                     token: number,
                     data: qrcode,
-                    message: "Scan QR Code",
+                    message: 'Scan QR Code',
                 });
             }
-            if (connection === "open") {
+            if (connection === 'open') {
                 const device = await db_1.prisma.numbers.findFirst({
                     where: { body: number },
                 });
                 await db_1.prisma.numbers.update({
                     where: { id: device === null || device === void 0 ? void 0 : device.id },
-                    data: { status: "Connected" },
+                    data: { status: 'Connected' },
                 });
-                const [result] = await sock.onWhatsApp((_b = (_a = sock.user) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : "");
-                const ppUrl = await sock.profilePictureUrl(result.jid, "image");
-                io.emit("connection-open", {
-                    token: result.jid.replace(/\D/g, ""),
-                    user: { name: (_c = sock.user) === null || _c === void 0 ? void 0 : _c.name, id: result.jid.replace(/\D/g, "") },
+                const [result] = await sock.onWhatsApp((_b = (_a = sock.user) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : '');
+                const ppUrl = await sock.profilePictureUrl(result.jid, 'image');
+                io.emit('connection-open', {
+                    token: result.jid.replace(/\D/g, ''),
+                    user: { name: (_c = sock.user) === null || _c === void 0 ? void 0 : _c.name, id: result.jid.replace(/\D/g, '') },
                     ppUrl,
                 });
             }
-            if (connection === "close") {
+            if (connection === 'close') {
                 // reconnect if not logged out
                 if (((_d = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _d === void 0 ? void 0 : _d.output.statusCode) === 515) {
                     connectToWhatsApp(`${number}`, io);
                 }
-                if (((_f = (_e = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _e === void 0 ? void 0 : _e.output) === null || _f === void 0 ? void 0 : _f.statusCode) !==
-                    baileys_1.DisconnectReason.loggedOut) {
+                if (((_f = (_e = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _e === void 0 ? void 0 : _e.output) === null || _f === void 0 ? void 0 : _f.statusCode) !== baileys_1.DisconnectReason.loggedOut) {
                     // console.log(lastDisconnect?.error?.name)
-                    // connectToWhatsApp(`${number}`, io);            
+                    // connectToWhatsApp(`${number}`, io);
                 }
                 else {
                     fs_1.default.rmdirSync(`./${number}`, { recursive: true });
@@ -111,25 +110,25 @@ async function connectToWhatsApp(number, io) {
                     });
                     await db_1.prisma.numbers.update({
                         where: { id: device === null || device === void 0 ? void 0 : device.id },
-                        data: { status: "Disconnect" },
+                        data: { status: 'Disconnect' },
                     });
-                    console.log("Connection closed. You are logged out.");
+                    console.log('Connection closed. You are logged out.');
                 }
             }
-            console.log("CONNECTION UPDATE", update);
+            console.log('CONNECTION UPDATE', update);
         }
         // credentials updated -- save them
-        if (events["creds.update"]) {
+        if (events['creds.update']) {
             await saveCreds();
         }
         // received a new message
-        if (events["messages.upsert"]) {
-            const upsert = events["messages.upsert"];
-            console.log("recv messages ", JSON.stringify(upsert, undefined, 2));
-            if (upsert.type === "notify") {
+        if (events['messages.upsert']) {
+            const upsert = events['messages.upsert'];
+            console.log('recv messages ', JSON.stringify(upsert, undefined, 2));
+            if (upsert.type === 'notify') {
                 for (const msg of upsert.messages) {
                     if (!msg.key.fromMe) {
-                        console.log("replying to", msg.key.remoteJid);
+                        console.log('replying to', msg.key.remoteJid);
                         await sock.readMessages([msg.key]);
                         // await sock.sendMessage(msg.key.remoteJid ?? '', {text: msg.message?.extendedTextMessage?.text ?? ''})
                     }

@@ -7,9 +7,9 @@ export interface ISentText {
 
 export interface ISentMedia {
   token: string;
-  number: string;  
+  number: string;
   type?: string;
   url?: string;
-  fileName?: string  
-  caption?: string  
+  fileName?: string;
+  caption?: string;
 }

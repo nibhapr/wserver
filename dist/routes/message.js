@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const message_1 = require("../controllers/message");
-const router = (0, express_1.Router)({ mergeParams: true });
+const router = (0, express_1.Router)();
 router.post('/send-text', message_1.sendText);
 router.post('/send-media', message_1.sendMedia);
 exports.default = router;

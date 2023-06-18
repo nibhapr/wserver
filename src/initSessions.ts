@@ -1,6 +1,6 @@
-import { io } from ".";
-import { prisma } from "./utils/db";
-import { connectToWhatsApp } from "./whatsapp";
+import { io } from '.';
+import { prisma } from './utils/db';
+import { connectToWhatsApp } from './whatsapp';
 
 const initSessions = async () => {
   init();
