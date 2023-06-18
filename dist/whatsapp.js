@@ -44,10 +44,10 @@ const msgRetryCounterCache = new node_cache_1.default();
 //   store?.writeToFile("./baileys_store_multi.json");
 // }, 10_000);
 async function connectToWhatsApp(number, io) {
-    console.log("SOCKET READY");
+    logger.info("SOCKET READY");
     const { state, saveCreds } = await (0, baileys_1.useMultiFileAuthState)(`${number}`);
     const { version, isLatest } = await (0, baileys_1.fetchLatestBaileysVersion)();
-    console.log(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
+    logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
     const sock = (0, baileys_1.default)({
         // can provide additional config here
         version,
@@ -81,7 +81,7 @@ async function connectToWhatsApp(number, io) {
                 const device = await db_1.prisma.numbers.findFirst({
                     where: { body: number },
                 });
-                const updateStatus = await db_1.prisma.numbers.update({
+                await db_1.prisma.numbers.update({
                     where: { id: device === null || device === void 0 ? void 0 : device.id },
                     data: { status: "Connected" },
                 });
@@ -109,14 +109,14 @@ async function connectToWhatsApp(number, io) {
                     const device = await db_1.prisma.numbers.findFirst({
                         where: { body: number },
                     });
-                    const updateStatus = await db_1.prisma.numbers.update({
+                    await db_1.prisma.numbers.update({
                         where: { id: device === null || device === void 0 ? void 0 : device.id },
                         data: { status: "Disconnect" },
                     });
                     console.log("Connection closed. You are logged out.");
                 }
             }
-            console.log("connection update", update);
+            console.log("CONNECTION UPDATE", update);
         }
         // credentials updated -- save them
         if (events["creds.update"]) {

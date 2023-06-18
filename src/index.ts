@@ -5,7 +5,7 @@ import { Server as SocketServer } from "socket.io";
 import { WASocket } from "@whiskeysockets/baileys";
 import bodyParser from "body-parser";
 import initSessions from "./initSessions";
-import routes from "./routes/message";
+import routes from "./routes";
 
 type Session = WASocket
 

@@ -1,5 +1,5 @@
+"use strict";
 // import { Request, Response } from "express";
-
 // export const initRoutes = (client) => {
 //   app.post("/send-message", (_req: Request, res: Response) => {
 //     client

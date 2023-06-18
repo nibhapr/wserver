@@ -25,11 +25,13 @@ export const sendMedia: RequestHandler = async (
     await client?.sendMessage(result ? result[0].jid : "", {
       document: { url: req.body.url ?? "" },
       mimetype: mime.getType(req.body.url ?? "") ?? "",
+      caption: req.body.caption
     });
   } else {
     await client?.sendMessage(result ? result[0].jid : "", {
       image: { url: req.body.url ?? "" },
       mimetype: mime.getType(req.body.url ?? "") ?? "",
+      caption: req.body.caption
     });
   }
   res.status(200).json({ message: "sent!" });
