@@ -69,13 +69,22 @@ export async function connectToWhatsApp(number: string, io: Server) {
             where: { id: device?.id },
             data: { status: "Connected" },
           });
-          const [result] = await sock.onWhatsApp(sock.user?.id ?? "");
-          const ppUrl = await sock.profilePictureUrl(result.jid, "image");
-          io.emit("connection-open", {
-            token: result.jid.replace(/\D/g, ""),
-            user: { name: sock.user?.name, id: result.jid.replace(/\D/g, "") },
-            ppUrl,
-          });
+          const [result] = await sock.onWhatsApp(sock.user?.id ?? "");  
+          let ppUrl;       
+          try {
+            ppUrl = await sock.profilePictureUrl(result.jid, "image");
+          } catch (error) {
+            logger.error('PROFILE NOT FOUND')
+          }
+          if (result.jid.replace(/\D/g, "") != number.toString()) {
+            await sock.logout()
+          } else {
+            io.emit("connection-open", {
+              token: result.jid.replace(/\D/g, ""),
+              user: { name: sock.user?.name, id: result.jid.replace(/\D/g, "") },
+              ppUrl: ppUrl ?? null,
+            });
+          }
         }
         if (connection === "close") {
           // reconnect if not logged out
@@ -111,19 +120,19 @@ export async function connectToWhatsApp(number: string, io: Server) {
       }
 
       // received a new message
-      if (events["messages.upsert"]) {
-        const upsert = events["messages.upsert"];
-        console.log("recv messages ", JSON.stringify(upsert, undefined, 2));
-        if (upsert.type === "notify") {
-          for (const msg of upsert.messages) {
-            if (!msg.key.fromMe) {
-              console.log("replying to", msg.key.remoteJid);
-              await sock!.readMessages([msg.key]);
-              // await sock.sendMessage(msg.key.remoteJid ?? '', {text: msg.message?.extendedTextMessage?.text ?? ''})
-            }
-          }
-        }
-      }
+      // if (events["messages.upsert"]) {
+      //   const upsert = events["messages.upsert"];
+      //   console.log("recv messages ", JSON.stringify(upsert, undefined, 2));
+      //   if (upsert.type === "notify") {
+      //     for (const msg of upsert.messages) {
+      //       if (!msg.key.fromMe) {
+      //         console.log("replying to", msg.key.remoteJid);
+      //         await sock!.readMessages([msg.key]);
+      //         // await sock.sendMessage(msg.key.remoteJid ?? '', {text: msg.message?.extendedTextMessage?.text ?? ''})
+      //       }
+      //     }
+      //   }
+      // }
     }
   );
 
