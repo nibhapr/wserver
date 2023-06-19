@@ -7,7 +7,7 @@ const initSessions = async () => {
     init();
     setInterval(async () => {
         init();
-    }, 30000);
+    }, 900000);
 };
 const init = async () => {
     const devices = await db_1.prisma.numbers.findMany();
