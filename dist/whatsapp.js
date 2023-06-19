@@ -86,12 +86,23 @@ async function connectToWhatsApp(number, io) {
                     data: { status: "Connected" },
                 });
                 const [result] = await sock.onWhatsApp((_b = (_a = sock.user) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : "");
-                const ppUrl = await sock.profilePictureUrl(result.jid, "image");
-                io.emit("connection-open", {
-                    token: result.jid.replace(/\D/g, ""),
-                    user: { name: (_c = sock.user) === null || _c === void 0 ? void 0 : _c.name, id: result.jid.replace(/\D/g, "") },
-                    ppUrl,
-                });
+                let ppUrl;
+                try {
+                    ppUrl = await sock.profilePictureUrl(result.jid, "image");
+                }
+                catch (error) {
+                    logger.error('PROFILE NOT FOUND');
+                }
+                if (result.jid.replace(/\D/g, "") != number.toString()) {
+                    await sock.logout();
+                }
+                else {
+                    io.emit("connection-open", {
+                        token: result.jid.replace(/\D/g, ""),
+                        user: { name: (_c = sock.user) === null || _c === void 0 ? void 0 : _c.name, id: result.jid.replace(/\D/g, "") },
+                        ppUrl: ppUrl !== null && ppUrl !== void 0 ? ppUrl : null,
+                    });
+                }
             }
             if (connection === "close") {
                 // reconnect if not logged out
@@ -123,19 +134,19 @@ async function connectToWhatsApp(number, io) {
             await saveCreds();
         }
         // received a new message
-        if (events["messages.upsert"]) {
-            const upsert = events["messages.upsert"];
-            console.log("recv messages ", JSON.stringify(upsert, undefined, 2));
-            if (upsert.type === "notify") {
-                for (const msg of upsert.messages) {
-                    if (!msg.key.fromMe) {
-                        console.log("replying to", msg.key.remoteJid);
-                        await sock.readMessages([msg.key]);
-                        // await sock.sendMessage(msg.key.remoteJid ?? '', {text: msg.message?.extendedTextMessage?.text ?? ''})
-                    }
-                }
-            }
-        }
+        // if (events["messages.upsert"]) {
+        //   const upsert = events["messages.upsert"];
+        //   console.log("recv messages ", JSON.stringify(upsert, undefined, 2));
+        //   if (upsert.type === "notify") {
+        //     for (const msg of upsert.messages) {
+        //       if (!msg.key.fromMe) {
+        //         console.log("replying to", msg.key.remoteJid);
+        //         await sock!.readMessages([msg.key]);
+        //         // await sock.sendMessage(msg.key.remoteJid ?? '', {text: msg.message?.extendedTextMessage?.text ?? ''})
+        //       }
+        //     }
+        //   }
+        // }
     });
     _1.sessions.set(number, sock);
 }
