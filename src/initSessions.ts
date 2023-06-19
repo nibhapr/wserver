@@ -12,7 +12,7 @@ const initSessions = async () => {
 const init = async () => {
   const devices = await prisma.numbers.findMany();
   devices.forEach((device) => {
-    connectToWhatsApp(device.body, io);
+    // connectToWhatsApp(device.body, io);
   });
 };
 

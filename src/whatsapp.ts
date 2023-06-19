@@ -1,14 +1,14 @@
 import makeWASocket, {
-  DisconnectReason,  
+  DisconnectReason,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
-  useMultiFileAuthState,    
+  useMultiFileAuthState,
 } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import NodeCache from "node-cache";
 import MAIN_LOGGER from "./utils/logger";
 import fs from "fs";
-import type { Server } from "socket.io";
+import type { Socket } from "socket.io";
 import { toDataURL } from "qrcode";
 import { prisma } from "./utils/db";
 import { sessions } from ".";
@@ -26,7 +26,26 @@ const msgRetryCounterCache = new NodeCache();
 //   store?.writeToFile("./baileys_store_multi.json");
 // }, 10_000);
 
-export async function connectToWhatsApp(number: string, io: Server) {
+export async function LogoutDevice(number: string, io: Socket) {
+  const session = sessions.get(number)
+  await session?.logout()
+  const device = await prisma.numbers.findFirst({
+    where: { body: number },
+  });
+
+  if (device?.status === "Connected") {
+    await prisma.numbers.update({
+      where: { id: device.id },
+      data: { status: "Disconnect" },
+    });
+  }
+  fs.rmdirSync(`./${number}`, { recursive: true });
+  sessions.delete(number)  
+  connectToWhatsApp(number, io)
+}
+
+
+export async function connectToWhatsApp(number: string, io: Socket) {
   logger.info("SOCKET READY");
   const { state, saveCreds } = await useMultiFileAuthState(`${number}`);
   const { version, isLatest } = await fetchLatestBaileysVersion();
@@ -42,6 +61,8 @@ export async function connectToWhatsApp(number: string, io: Server) {
     msgRetryCounterCache,
     generateHighQualityLinkPreview: true,
   });
+  
+  
 
   // store?.bind(sock.ev);
   sock.ev.process(
@@ -50,6 +71,9 @@ export async function connectToWhatsApp(number: string, io: Server) {
       // something about the connection changed
       // maybe it closed, or we received all offline message or connection opened
       if (events["connection.update"]) {
+        const device = await prisma.numbers.findFirst({
+          where: { body: number },
+        });
         const update = events["connection.update"];
         const { connection, lastDisconnect, qr } = update;
         if (qr?.length) {
@@ -62,26 +86,27 @@ export async function connectToWhatsApp(number: string, io: Server) {
         }
 
         if (connection === "open") {
-          const device = await prisma.numbers.findFirst({
-            where: { body: number },
-          });
           await prisma.numbers.update({
             where: { id: device?.id },
             data: { status: "Connected" },
           });
-          const [result] = await sock.onWhatsApp(sock.user?.id ?? "");  
-          let ppUrl;       
+          const [result] = await sock.onWhatsApp(sock.user?.id ?? "");
+          let ppUrl;
           try {
             ppUrl = await sock.profilePictureUrl(result.jid, "image");
           } catch (error) {
-            logger.error('PROFILE NOT FOUND')
+            logger.error("PROFILE NOT FOUND");
           }
           if (result.jid.replace(/\D/g, "") != number.toString()) {
-            await sock.logout()
+            io.emit("number-mismatch")
+            await sock.logout();
           } else {
             io.emit("connection-open", {
               token: result.jid.replace(/\D/g, ""),
-              user: { name: sock.user?.name, id: result.jid.replace(/\D/g, "") },
+              user: {
+                name: sock.user?.name,
+                id: result.jid.replace(/\D/g, ""),
+              },
               ppUrl: ppUrl ?? null,
             });
           }
@@ -95,8 +120,14 @@ export async function connectToWhatsApp(number: string, io: Server) {
             (lastDisconnect?.error as Boom)?.output?.statusCode !==
             DisconnectReason.loggedOut
           ) {
+            if (device?.status === "Connected") {
+              await prisma.numbers.update({
+                where: { id: device.id },
+                data: { status: "Disconnect" },
+              });
+            }
             // console.log(lastDisconnect?.error?.name)
-            // connectToWhatsApp(`${number}`, io);            
+            // connectToWhatsApp(`${number}`, io);
           } else {
             fs.rmdirSync(`./${number}`, { recursive: true });
             connectToWhatsApp(`${number}`, io);
@@ -117,8 +148,7 @@ export async function connectToWhatsApp(number: string, io: Server) {
       // credentials updated -- save them
       if (events["creds.update"]) {
         await saveCreds();
-      }
-
+      }      
       // received a new message
       // if (events["messages.upsert"]) {
       //   const upsert = events["messages.upsert"];
@@ -136,5 +166,5 @@ export async function connectToWhatsApp(number: string, io: Server) {
     }
   );
 
-  sessions.set(number, sock)
+  sessions.set(number, sock);
 }
