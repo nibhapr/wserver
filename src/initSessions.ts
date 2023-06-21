@@ -1,6 +1,6 @@
 import { io } from ".";
 import { prisma } from "./utils/db";
-import { connectToWhatsApp } from "./whatsapp";
+import { connectToWhatsApp, initializeWhatsapp } from "./whatsapp";
 
 const initSessions = async () => {
   init();
@@ -12,7 +12,7 @@ const initSessions = async () => {
 const init = async () => {
   const devices = await prisma.numbers.findMany();
   devices.forEach((device) => {
-    // connectToWhatsApp(device.body, io);
+    initializeWhatsapp(device.body);
   });
 };
 

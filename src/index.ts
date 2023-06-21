@@ -21,11 +21,12 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: false,limit: '50mb',parameterLimit: 100000 }))
 app.use(bodyParser.json())
 app.use('/', routes)
+
 app.post('/delete-device', (_req: Request, res: Response) => {
   res.status(200).json({message: 'DELETED!'})
 })
 
-// initSessions()
+initSessions()
 
 io.on("connection", (socket) => {           
   logger.info(socket.id)

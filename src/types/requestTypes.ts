@@ -1,3 +1,5 @@
+import type { blasts } from "@prisma/client";
+
 export interface ISentText {
   token: string;
   number: string;
@@ -13,3 +15,9 @@ export interface ISentMedia {
   fileName?: string  
   caption?: string  
 }
+
+export interface ISendBulk {
+  data: blasts[]
+  delay: number  
+}
+

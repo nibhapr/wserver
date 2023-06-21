@@ -1,7 +1,9 @@
 import { Request, RequestHandler } from "express";
 import { sessions } from "..";
-import { ISentMedia, ISentText } from "../types/requestTypes";
+import { ISendBulk, ISentMedia, ISentText } from "../types/requestTypes";
 import mime from 'mime'
+import { sendBlast } from "../utils/message";
+import logger from "../utils/logger";
 
 export const sendText: RequestHandler = async (
   req: Request<{}, {}, ISentText>,
@@ -36,3 +38,14 @@ export const sendMedia: RequestHandler = async (
   }
   res.status(200).json({ message: "sent!" });
 };
+
+export const sendBulk: RequestHandler = async (req: Request<{}, {}, ISendBulk>, res) => {    
+  const client = sessions.get(req.body.data[0].sender)  
+  if (client) {
+    req.body.data.forEach(blast => {    
+      sendBlast(client, blast.receiver, blast.message, blast.type)
+    });
+  } else {
+    res.status(404).json({message: "Whatsapp session not found!"})
+  }
+}
