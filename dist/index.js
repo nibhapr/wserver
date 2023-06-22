@@ -9,6 +9,7 @@ const whatsapp_1 = require("./whatsapp");
 const http_1 = require("http");
 const socket_io_1 = require("socket.io");
 const body_parser_1 = __importDefault(require("body-parser"));
+const initSessions_1 = __importDefault(require("./initSessions"));
 const routes_1 = __importDefault(require("./routes"));
 const logger_1 = __importDefault(require("./utils/logger"));
 exports.sessions = new Map();
@@ -23,7 +24,7 @@ app.use('/', routes_1.default);
 app.post('/delete-device', (_req, res) => {
     res.status(200).json({ message: 'DELETED!' });
 });
-// initSessions()
+(0, initSessions_1.default)();
 exports.io.on("connection", (socket) => {
     logger_1.default.info(socket.id);
     // Initialize All devices and set Sessions
