@@ -34,6 +34,7 @@ const fs_1 = __importDefault(require("fs"));
 const qrcode_1 = require("qrcode");
 const db_1 = require("./utils/db");
 const _1 = require(".");
+const autoreply_1 = __importDefault(require("./autoreply"));
 const logger = logger_1.default.child({});
 logger.level = "trace";
 const msgRetryCounterCache = new node_cache_1.default();
@@ -102,7 +103,7 @@ async function connectToWhatsApp(number, io) {
                         data: { status: "Disconnect" },
                     });
                 }
-                let qrcode = await (0, qrcode_1.toDataURL)(qr);
+                const qrcode = await (0, qrcode_1.toDataURL)(qr);
                 io.emit("qrcode", {
                     token: number,
                     data: qrcode,
@@ -172,20 +173,11 @@ async function connectToWhatsApp(number, io) {
         if (events["creds.update"]) {
             await saveCreds();
         }
-        // received a new message
-        // if (events["messages.upsert"]) {
-        //   const upsert = events["messages.upsert"];
-        //   console.log("recv messages ", JSON.stringify(upsert, undefined, 2));
-        //   if (upsert.type === "notify") {
-        //     for (const msg of upsert.messages) {
-        //       if (!msg.key.fromMe) {
-        //         console.log("replying to", msg.key.remoteJid);
-        //         await sock!.readMessages([msg.key]);
-        //         // await sock.sendMessage(msg.key.remoteJid ?? '', {text: msg.message?.extendedTextMessage?.text ?? ''})
-        //       }
-        //     }
-        //   }
-        // }
+        //Initialize autoreplies
+        if (events["messages.upsert"]) {
+            const upsert = events["messages.upsert"];
+            (0, autoreply_1.default)(upsert, number);
+        }
     });
     _1.sessions.set(number, sock);
 }
@@ -210,7 +202,7 @@ const initializeWhatsapp = async (number) => {
     sock.ev.process(
     // events is a map for event name => event data
     async (events) => {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c;
         // something about the connection changed
         // maybe it closed, or we received all offline message or connection opened
         if (events["connection.update"]) {
@@ -236,21 +228,13 @@ const initializeWhatsapp = async (number) => {
                     where: { id: device === null || device === void 0 ? void 0 : device.id },
                     data: { status: "Connected" },
                 });
-                const [result] = await sock.onWhatsApp((_b = (_a = sock.user) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : "");
-                let ppUrl;
-                try {
-                    ppUrl = await sock.profilePictureUrl(result.jid, "image");
-                }
-                catch (error) {
-                    logger.error("PROFILE NOT FOUND");
-                }
             }
             if (connection === "close") {
                 // reconnect if not logged out
-                if (((_c = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _c === void 0 ? void 0 : _c.output.statusCode) === 515) {
+                if (((_a = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _a === void 0 ? void 0 : _a.output.statusCode) === 515) {
                     (0, exports.initializeWhatsapp)(number);
                 }
-                if (((_e = (_d = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _d === void 0 ? void 0 : _d.output) === null || _e === void 0 ? void 0 : _e.statusCode) !==
+                if (((_c = (_b = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _b === void 0 ? void 0 : _b.output) === null || _c === void 0 ? void 0 : _c.statusCode) !==
                     baileys_1.DisconnectReason.loggedOut) {
                     if ((device === null || device === void 0 ? void 0 : device.status) === "Connected") {
                         await db_1.prisma.numbers.update({
@@ -279,6 +263,11 @@ const initializeWhatsapp = async (number) => {
         // credentials updated -- save them
         if (events["creds.update"]) {
             await saveCreds();
+        }
+        //Initialize autoreplies
+        if (events["messages.upsert"]) {
+            const upsert = events["messages.upsert"];
+            (0, autoreply_1.default)(upsert, number);
         }
     });
     _1.sessions.set(number, sock);
