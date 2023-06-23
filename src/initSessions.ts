@@ -1,9 +1,9 @@
-import { io } from ".";
+import initAutoreply from "./autoreply";
 import { prisma } from "./utils/db";
-import { connectToWhatsApp } from "./whatsapp";
+import { initializeWhatsapp } from "./whatsapp";
 
 const initSessions = async () => {
-  init();
+  init();  
   setInterval(async () => {
     init();
   }, 900000);
@@ -12,8 +12,8 @@ const initSessions = async () => {
 const init = async () => {
   const devices = await prisma.numbers.findMany();
   devices.forEach((device) => {
-    connectToWhatsApp(device.body, io);
-  });
+    initializeWhatsapp(device.body)
+  });  
 };
 
 export default initSessions;

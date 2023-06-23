@@ -3,9 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendMedia = exports.sendText = void 0;
+exports.sendBulk = exports.sendMedia = exports.sendText = void 0;
 const __1 = require("..");
 const mime_1 = __importDefault(require("mime"));
+const message_1 = require("../utils/message");
 const sendText = async (req, res) => {
     var _a;
     const client = __1.sessions.get(req.body.token);
@@ -37,3 +38,15 @@ const sendMedia = async (req, res) => {
     res.status(200).json({ message: "sent!" });
 };
 exports.sendMedia = sendMedia;
+const sendBulk = async (req, res) => {
+    const client = __1.sessions.get(req.body.data[0].sender);
+    if (client) {
+        req.body.data.forEach(blast => {
+            (0, message_1.sendBlast)(client, blast.receiver, blast.message, blast.type);
+        });
+    }
+    else {
+        res.status(404).json({ message: "Whatsapp session not found!" });
+    }
+};
+exports.sendBulk = sendBulk;
