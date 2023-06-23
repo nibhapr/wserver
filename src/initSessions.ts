@@ -1,4 +1,3 @@
-import initAutoreply from "./autoreply";
 import { prisma } from "./utils/db";
 import { initializeWhatsapp } from "./whatsapp";
 

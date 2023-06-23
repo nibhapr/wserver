@@ -1,7 +1,6 @@
 import type { autoreplies_type, blasts_type } from "@prisma/client";
 import type { WASocket } from "@whiskeysockets/baileys";
 import mime from "mime";
-import logger from "./logger";
 
 export type IMessage = {
   text?: string;
@@ -23,7 +22,7 @@ export const sendBlast = async (
   if (/[^0-9]/g.test(receiver)) {
     number = receiver;
   } else {
-    const [result] = await client?.onWhatsApp(receiver);
+    const [result] = await client.onWhatsApp(receiver);
     number = result.jid;
   }
 

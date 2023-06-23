@@ -3,10 +3,9 @@ import { sessions } from "..";
 import { ISendBulk, ISentMedia, ISentText } from "../types/requestTypes";
 import mime from "mime";
 import { sendBlast } from "../utils/message";
-import logger from "../utils/logger";
 
 export const sendText: RequestHandler = async (
-  req: Request<{}, {}, ISentText>,
+  req: Request<object, object, ISentText>,
   res
 ) => {
   const client = sessions.get(req.body.token);
@@ -18,7 +17,7 @@ export const sendText: RequestHandler = async (
 };
 
 export const sendMedia: RequestHandler = async (
-  req: Request<{}, {}, ISentMedia>,
+  req: Request<object, object, ISentMedia>,
   res
 ) => {
   const client = sessions.get(req.body.token);
@@ -40,7 +39,7 @@ export const sendMedia: RequestHandler = async (
 };
 
 export const sendBulk: RequestHandler = async (
-  req: Request<{}, {}, ISendBulk>,
+  req: Request<object, object, ISendBulk>,
   res
 ) => {
   const client = sessions.get(req.body.data[0].sender);
