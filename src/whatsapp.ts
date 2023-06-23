@@ -12,6 +12,7 @@ import type { Socket } from "socket.io";
 import { toDataURL } from "qrcode";
 import { prisma } from "./utils/db";
 import { sessions } from ".";
+import initAutoreply from "./autoreply";
 
 const logger = MAIN_LOGGER.child({});
 logger.level = "trace";
@@ -161,20 +162,12 @@ export async function connectToWhatsApp(number: string, io: Socket) {
       if (events["creds.update"]) {
         await saveCreds();
       }
-      // received a new message
-      // if (events["messages.upsert"]) {
-      //   const upsert = events["messages.upsert"];
-      //   console.log("recv messages ", JSON.stringify(upsert, undefined, 2));
-      //   if (upsert.type === "notify") {
-      //     for (const msg of upsert.messages) {
-      //       if (!msg.key.fromMe) {
-      //         console.log("replying to", msg.key.remoteJid);
-      //         await sock!.readMessages([msg.key]);
-      //         // await sock.sendMessage(msg.key.remoteJid ?? '', {text: msg.message?.extendedTextMessage?.text ?? ''})
-      //       }
-      //     }
-      //   }
-      // }
+      
+      //Initialize autoreplies
+      if (events['messages.upsert']) {
+        const upsert = events['messages.upsert']
+        initAutoreply(upsert, number)
+      }
     }
   );
 
@@ -276,6 +269,12 @@ export const initializeWhatsapp = async (number: string) => {
       // credentials updated -- save them
       if (events["creds.update"]) {
         await saveCreds();
+      }
+
+      //Initialize autoreplies
+      if (events['messages.upsert']) {
+        const upsert = events['messages.upsert']
+        initAutoreply(upsert, number)
       }
     }
   );
