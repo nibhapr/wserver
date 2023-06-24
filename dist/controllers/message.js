@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendBulk = exports.sendMedia = exports.sendText = void 0;
 const __1 = require("..");
 const mime_1 = __importDefault(require("mime"));
-const message_1 = require("../utils/message");
+const message_service_1 = require("../services/message-service");
 const sendText = async (req, res) => {
     var _a;
     const client = __1.sessions.get(req.body.token);
@@ -14,7 +14,7 @@ const sendText = async (req, res) => {
     await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
         text: (_a = req.body.text) !== null && _a !== void 0 ? _a : "",
     }));
-    res.status(200).json({ message: "sent!" });
+    res.status(200).json({ message: "sent!", status: "success" });
 };
 exports.sendText = sendText;
 const sendMedia = async (req, res) => {
@@ -35,20 +35,19 @@ const sendMedia = async (req, res) => {
             caption: req.body.caption,
         }));
     }
-    res.status(200).json({ message: "sent!" });
+    res.status(200).json({ message: "sent!", status: "success" });
 };
 exports.sendMedia = sendMedia;
 const sendBulk = async (req, res) => {
     const client = __1.sessions.get(req.body.data[0].sender);
     if (client) {
-        req.body.data.forEach((blast, idx) => {
-            setTimeout(async () => {
-                await (0, message_1.sendBlast)(client, blast.receiver, blast.message, blast.type);
-            }, req.body.delay * 1000 * idx);
-        });
+        await (0, message_service_1.sendEachBlast)(req.body.data, req.body.delay, client);
+        res.status(200).json({ status: "success", message: "Messages sent!" });
     }
     else {
-        res.status(404).json({ message: "Whatsapp session not found!" });
+        res
+            .status(404)
+            .json({ message: "Whatsapp session not found!", status: "success" });
     }
 };
 exports.sendBulk = sendBulk;
