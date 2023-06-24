@@ -14,7 +14,7 @@ const sendText = async (req, res) => {
     await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
         text: (_a = req.body.text) !== null && _a !== void 0 ? _a : "",
     }));
-    res.status(200).json({ message: "sent!", status: "success" });
+    res.status(200).json({ message: "sent!", status: true });
 };
 exports.sendText = sendText;
 const sendMedia = async (req, res) => {
@@ -35,19 +35,19 @@ const sendMedia = async (req, res) => {
             caption: req.body.caption,
         }));
     }
-    res.status(200).json({ message: "sent!", status: "success" });
+    res.status(200).json({ message: "sent!", status: true });
 };
 exports.sendMedia = sendMedia;
 const sendBulk = async (req, res) => {
     const client = __1.sessions.get(req.body.data[0].sender);
     if (client) {
         await (0, message_service_1.sendEachBlast)(req.body.data, req.body.delay, client);
-        res.status(200).json({ status: "success", message: "Messages sent!" });
+        res.status(200).json({ status: true, message: "Messages sent!" });
     }
     else {
         res
             .status(404)
-            .json({ message: "Whatsapp session not found!", status: "success" });
+            .json({ message: "Whatsapp session not found!", status: true });
     }
 };
 exports.sendBulk = sendBulk;

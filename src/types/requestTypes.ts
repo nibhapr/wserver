@@ -22,7 +22,7 @@ export interface ISendBulk {
 }
 
 export interface IResponse {
-  status: "success" | "failed"
+  status: boolean
   message: string
   append?: any
 }

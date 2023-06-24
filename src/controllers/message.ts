@@ -19,7 +19,7 @@ export const sendText: RequestHandler = async (
   await client?.sendMessage(result ? result[0].jid : "", {
     text: req.body.text ?? "",
   });
-  res.status(200).json({ message: "sent!", status: "success" });
+  res.status(200).json({ message: "sent!", status: true });
 };
 
 export const sendMedia: RequestHandler = async (
@@ -41,7 +41,7 @@ export const sendMedia: RequestHandler = async (
       caption: req.body.caption,
     });
   }
-  res.status(200).json({ message: "sent!", status: "success" });
+  res.status(200).json({ message: "sent!", status: true });
 };
 
 export const sendBulk: RequestHandler = async (
@@ -51,10 +51,10 @@ export const sendBulk: RequestHandler = async (
   const client = sessions.get(req.body.data[0].sender);
   if (client) {
     await sendEachBlast(req.body.data, req.body.delay, client);
-    res.status(200).json({ status: "success", message: "Messages sent!" });
+    res.status(200).json({ status: true, message: "Messages sent!" });
   } else {
     res
       .status(404)
-      .json({ message: "Whatsapp session not found!", status: "success" });
+      .json({ message: "Whatsapp session not found!", status: true });
   }
 };
