@@ -13,7 +13,7 @@ const initAutoreply = async (upsert: IUpsert, number: string) => {
       upsert.messages.map((message) => {
         if (
           (message.message?.extendedTextMessage?.text ??
-            message.message?.conversation) == autoreply.keyword
+            message.message?.conversation)?.toLowerCase() == autoreply.keyword.toLowerCase()
         ) {
           sendBlast(
             client,
