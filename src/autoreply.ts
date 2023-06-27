@@ -7,13 +7,16 @@ const initAutoreply = async (upsert: IUpsert, number: string) => {
   const autoreplies = await prisma.autoreplies.findMany({
     where: { device: number },
   });
-  const client = sessions.get(number);  
+  const client = sessions.get(number);
   if (client) {
     autoreplies.map((autoreply) => {
       upsert.messages.map((message) => {
         if (
-          (message.message?.extendedTextMessage?.text ??
-            message.message?.conversation)?.toLowerCase() == autoreply.keyword.toLowerCase()
+          (
+            message.message?.extendedTextMessage?.text ??
+            message.message?.conversation
+          )?.toLowerCase() == autoreply.keyword.toLowerCase() &&
+          !message.key.fromMe
         ) {
           sendBlast(
             client,
