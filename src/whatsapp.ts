@@ -103,22 +103,22 @@ export async function connectToWhatsApp(number: string, io: Socket) {
             where: { id: device?.id },
             data: { status: "Connected" },
           });
-          const [result] = await sock.onWhatsApp(sock.user?.id ?? "");
+          const [result] = await sock.onWhatsApp(number ?? "");
           let ppUrl;
           try {
             ppUrl = await sock.profilePictureUrl(result.jid, "image");
           } catch (error) {
             logger.error("PROFILE NOT FOUND");
           }
-          if (result.jid.replace(/\D/g, "") != number.toString()) {
+          if (result?.jid?.replace(/\D/g, "") != number.toString()) {
             io.emit("number-mismatch");
             await sock.logout();
           } else {
             io.emit("connection-open", {
-              token: result.jid.replace(/\D/g, ""),
+              token: result?.jid?.replace(/\D/g, ""),
               user: {
                 name: sock.user?.name,
-                id: result.jid.replace(/\D/g, ""),
+                id: result?.jid?.replace(/\D/g, ""),
               },
               ppUrl: ppUrl ?? null,
             });

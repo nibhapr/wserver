@@ -84,7 +84,7 @@ async function connectToWhatsApp(number, io) {
     sock.ev.process(
     // events is a map for event name => event data
     async (events) => {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         // something about the connection changed
         // maybe it closed, or we received all offline message or connection opened
         if (events["connection.update"]) {
@@ -115,7 +115,7 @@ async function connectToWhatsApp(number, io) {
                     where: { id: device === null || device === void 0 ? void 0 : device.id },
                     data: { status: "Connected" },
                 });
-                const [result] = await sock.onWhatsApp((_b = (_a = sock.user) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : "");
+                const [result] = await sock.onWhatsApp(number !== null && number !== void 0 ? number : "");
                 let ppUrl;
                 try {
                     ppUrl = await sock.profilePictureUrl(result.jid, "image");
@@ -123,16 +123,16 @@ async function connectToWhatsApp(number, io) {
                 catch (error) {
                     logger.error("PROFILE NOT FOUND");
                 }
-                if (result.jid.replace(/\D/g, "") != number.toString()) {
+                if (((_a = result === null || result === void 0 ? void 0 : result.jid) === null || _a === void 0 ? void 0 : _a.replace(/\D/g, "")) != number.toString()) {
                     io.emit("number-mismatch");
                     await sock.logout();
                 }
                 else {
                     io.emit("connection-open", {
-                        token: result.jid.replace(/\D/g, ""),
+                        token: (_b = result === null || result === void 0 ? void 0 : result.jid) === null || _b === void 0 ? void 0 : _b.replace(/\D/g, ""),
                         user: {
                             name: (_c = sock.user) === null || _c === void 0 ? void 0 : _c.name,
-                            id: result.jid.replace(/\D/g, ""),
+                            id: (_d = result === null || result === void 0 ? void 0 : result.jid) === null || _d === void 0 ? void 0 : _d.replace(/\D/g, ""),
                         },
                         ppUrl: ppUrl !== null && ppUrl !== void 0 ? ppUrl : null,
                     });
@@ -140,10 +140,10 @@ async function connectToWhatsApp(number, io) {
             }
             if (connection === "close") {
                 // reconnect if not logged out
-                if (((_d = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _d === void 0 ? void 0 : _d.output.statusCode) === 515) {
+                if (((_e = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _e === void 0 ? void 0 : _e.output.statusCode) === 515) {
                     connectToWhatsApp(`${number}`, io);
                 }
-                if (((_f = (_e = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _e === void 0 ? void 0 : _e.output) === null || _f === void 0 ? void 0 : _f.statusCode) !==
+                if (((_g = (_f = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _f === void 0 ? void 0 : _f.output) === null || _g === void 0 ? void 0 : _g.statusCode) !==
                     baileys_1.DisconnectReason.loggedOut) {
                     if ((device === null || device === void 0 ? void 0 : device.status) === "Connected") {
                         await db_1.prisma.numbers.update({
