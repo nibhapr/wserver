@@ -71,6 +71,7 @@ async function connectToWhatsApp(number, io) {
     const sock = (0, baileys_1.default)({
         // can provide additional config here
         version,
+        logger,
         printQRInTerminal: true,
         auth: {
             creds: state.creds,
@@ -94,7 +95,6 @@ async function connectToWhatsApp(number, io) {
             const { connection, lastDisconnect, qr } = update;
             if (qr === null || qr === void 0 ? void 0 : qr.length) {
                 logger.warn("QRCODE");
-                console.log(qr);
                 if (((device === null || device === void 0 ? void 0 : device.status) === "Connected" &&
                     update.connection === "connecting") ||
                     ((device === null || device === void 0 ? void 0 : device.status) === "Connected" && update.connection === "close")) {
@@ -189,6 +189,7 @@ const initializeWhatsapp = async (number) => {
     logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
     const sock = (0, baileys_1.default)({
         // can provide additional config here
+        logger,
         version,
         printQRInTerminal: true,
         auth: {
@@ -213,7 +214,6 @@ const initializeWhatsapp = async (number) => {
             const { connection, lastDisconnect, qr } = update;
             if (qr === null || qr === void 0 ? void 0 : qr.length) {
                 logger.warn("QRCODE");
-                console.log(qr);
                 if (((device === null || device === void 0 ? void 0 : device.status) === "Connected" &&
                     update.connection === "connecting") ||
                     ((device === null || device === void 0 ? void 0 : device.status) === "Connected" && update.connection === "close")) {
