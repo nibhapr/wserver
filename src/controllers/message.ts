@@ -7,7 +7,6 @@ import {
   ISentText,
 } from "../types/requestTypes";
 import mime from "mime";
-import { prisma } from "../utils/db";
 import { sendEachBlast } from "../services/message-service";
 
 export const sendText: RequestHandler = async (

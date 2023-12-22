@@ -1,4 +1,4 @@
-import logger from "pino";
+import logger, { Logger } from "pino";
 import dayjs from "dayjs";
 
 const log = logger({

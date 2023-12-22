@@ -55,6 +55,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
   const sock = makeWASocket({
     // can provide additional config here
     version,
+    logger,
     printQRInTerminal: true,
     auth: {
       creds: state.creds,
@@ -79,7 +80,6 @@ export async function connectToWhatsApp(number: string, io: Socket) {
 
         if (qr?.length) {
           logger.warn("QRCODE");
-          console.log(qr);
           if (
             (device?.status === "Connected" &&
               update.connection === "connecting") ||
@@ -181,6 +181,7 @@ export const initializeWhatsapp = async (number: string) => {
   logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
   const sock = makeWASocket({
     // can provide additional config here
+    logger,
     version,
     printQRInTerminal: true,
     auth: {
@@ -206,7 +207,6 @@ export const initializeWhatsapp = async (number: string) => {
 
         if (qr?.length) {
           logger.warn("QRCODE");
-          console.log(qr);
           if (
             (device?.status === "Connected" &&
               update.connection === "connecting") ||
