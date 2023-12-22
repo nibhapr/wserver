@@ -18,7 +18,7 @@ const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 exports.io = new socket_io_1.Server(server, { cors: { origin: '*' } });
 const port = 3000;
-app.use(body_parser_1.default.urlencoded({ extended: false, limit: '50mb', parameterLimit: 100000 }));
+// app.use(bodyParser.urlencoded({ extended: false, limit: '50mb', parameterLimit: 100000 }));
 app.use(body_parser_1.default.json());
 app.use('/', routes_1.default);
 // Initialize All devices and set Sessions

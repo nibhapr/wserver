@@ -5,9 +5,9 @@ const db_1 = require("./utils/db");
 const whatsapp_1 = require("./whatsapp");
 const initSessions = async () => {
     init();
-    setInterval(async () => {
-        init();
-    }, 30000);
+    // setInterval(async () => {
+    //   init();
+    // }, 30000);
 };
 const init = async () => {
     const devices = await db_1.prisma.numbers.findMany();

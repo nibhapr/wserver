@@ -4,9 +4,9 @@ import { connectToWhatsApp } from './whatsapp';
 
 const initSessions = async () => {
   init();
-  setInterval(async () => {
-    init();
-  }, 30000);
+  // setInterval(async () => {
+  //   init();
+  // }, 30000);
 };
 
 const init = async () => {

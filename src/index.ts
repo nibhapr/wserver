@@ -17,7 +17,7 @@ const server = createServer(app);
 export const io = new SocketServer(server, { cors: { origin: '*' } });
 const port = 3000;
 
-app.use(bodyParser.urlencoded({ extended: false, limit: '50mb', parameterLimit: 100000 }));
+// app.use(bodyParser.urlencoded({ extended: false, limit: '50mb', parameterLimit: 100000 }));
 app.use(bodyParser.json());
 app.use('/', routes);
 

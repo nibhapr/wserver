@@ -44,6 +44,7 @@ const msgRetryCounterCache = new node_cache_1.default();
 //   store?.writeToFile("./baileys_store_multi.json");
 // }, 10_000);
 async function connectToWhatsApp(number, io) {
+    const device = await db_1.prisma.numbers.findFirst({ where: { body: number } });
     logger.info('SOCKET READY');
     const { state, saveCreds } = await (0, baileys_1.useMultiFileAuthState)(`${number}`);
     const { version, isLatest } = await (0, baileys_1.fetchLatestBaileysVersion)();
@@ -63,7 +64,7 @@ async function connectToWhatsApp(number, io) {
     sock.ev.process(
     // events is a map for event name => event data
     async (events) => {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e;
         // something about the connection changed
         // maybe it closed, or we received all offline message or connection opened
         if (events['connection.update']) {
@@ -85,20 +86,28 @@ async function connectToWhatsApp(number, io) {
                     where: { id: device === null || device === void 0 ? void 0 : device.id },
                     data: { status: 'Connected' },
                 });
-                const [result] = await sock.onWhatsApp((_b = (_a = sock.user) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : '');
+                const [result] = await sock.onWhatsApp(number);
+                logger.warn(result);
                 const ppUrl = await sock.profilePictureUrl(result.jid, 'image');
                 io.emit('connection-open', {
                     token: result.jid.replace(/\D/g, ''),
-                    user: { name: (_c = sock.user) === null || _c === void 0 ? void 0 : _c.name, id: result.jid.replace(/\D/g, '') },
+                    user: { name: (_a = sock.user) === null || _a === void 0 ? void 0 : _a.name, id: result.jid.replace(/\D/g, '') },
                     ppUrl,
                 });
             }
             if (connection === 'close') {
                 // reconnect if not logged out
-                if (((_d = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _d === void 0 ? void 0 : _d.output.statusCode) === 515) {
-                    connectToWhatsApp(`${number}`, io);
+                if (((_b = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _b === void 0 ? void 0 : _b.output.statusCode) === 515) {
+                    setTimeout(() => {
+                        connectToWhatsApp(`${number}`, io);
+                    }, 2000);
                 }
-                if (((_f = (_e = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _e === void 0 ? void 0 : _e.output) === null || _f === void 0 ? void 0 : _f.statusCode) !== baileys_1.DisconnectReason.loggedOut) {
+                if (((_c = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _c === void 0 ? void 0 : _c.output.statusCode) === 500) {
+                    setTimeout(() => {
+                        connectToWhatsApp(`${number}`, io);
+                    }, 2000);
+                }
+                if (((_e = (_d = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _d === void 0 ? void 0 : _d.output) === null || _e === void 0 ? void 0 : _e.statusCode) !== baileys_1.DisconnectReason.loggedOut) {
                     // console.log(lastDisconnect?.error?.name)
                     // connectToWhatsApp(`${number}`, io);
                 }
@@ -126,13 +135,6 @@ async function connectToWhatsApp(number, io) {
             const upsert = events['messages.upsert'];
             console.log('recv messages ', JSON.stringify(upsert, undefined, 2));
             if (upsert.type === 'notify') {
-                for (const msg of upsert.messages) {
-                    if (!msg.key.fromMe) {
-                        console.log('replying to', msg.key.remoteJid);
-                        await sock.readMessages([msg.key]);
-                        // await sock.sendMessage(msg.key.remoteJid ?? '', {text: msg.message?.extendedTextMessage?.text ?? ''})
-                    }
-                }
             }
         }
     });
