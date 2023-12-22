@@ -27,6 +27,7 @@ const msgRetryCounterCache = new NodeCache();
 // }, 10_000);
 
 export async function connectToWhatsApp(number: string, io: Server) {
+  const device = await prisma.numbers.findFirst({where: {body: number}})
   logger.info('SOCKET READY');
   const { state, saveCreds } = await useMultiFileAuthState(`${number}`);
   const { version, isLatest } = await fetchLatestBaileysVersion();
@@ -69,7 +70,8 @@ export async function connectToWhatsApp(number: string, io: Server) {
             where: { id: device?.id },
             data: { status: 'Connected' },
           });
-          const [result] = await sock.onWhatsApp(sock.user?.id ?? '');
+          const [result] = await sock.onWhatsApp(number);
+          logger.warn(result)
           const ppUrl = await sock.profilePictureUrl(result.jid, 'image');
           io.emit('connection-open', {
             token: result.jid.replace(/\D/g, ''),
@@ -80,7 +82,15 @@ export async function connectToWhatsApp(number: string, io: Server) {
         if (connection === 'close') {
           // reconnect if not logged out
           if ((lastDisconnect?.error as Boom)?.output.statusCode === 515) {
-            connectToWhatsApp(`${number}`, io);
+            setTimeout(() => {
+              connectToWhatsApp(`${number}`, io);
+            }, 2000)
+          }
+
+          if ((lastDisconnect?.error as Boom)?.output.statusCode === 500) {
+            setTimeout(() => {
+              connectToWhatsApp(`${number}`, io);
+            }, 2000)
           }
           if ((lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut) {
             // console.log(lastDisconnect?.error?.name)
@@ -112,13 +122,7 @@ export async function connectToWhatsApp(number: string, io: Server) {
         const upsert = events['messages.upsert'];
         console.log('recv messages ', JSON.stringify(upsert, undefined, 2));
         if (upsert.type === 'notify') {
-          for (const msg of upsert.messages) {
-            if (!msg.key.fromMe) {
-              console.log('replying to', msg.key.remoteJid);
-              await sock!.readMessages([msg.key]);
-              // await sock.sendMessage(msg.key.remoteJid ?? '', {text: msg.message?.extendedTextMessage?.text ?? ''})
-            }
-          }
+    
         }
       }
     }
