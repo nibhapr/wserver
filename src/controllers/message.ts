@@ -54,6 +54,6 @@ export const sendBulk: RequestHandler = async (
   } else {
     res
       .status(404)
-      .json({ message: "Whatsapp session not found!", status: true });
+      .json({ message: "Whatsapp session not found!", status: false });
   }
 };
