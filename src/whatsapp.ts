@@ -55,6 +55,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
   const sock = makeWASocket({
     // can provide additional config here
     version,
+    logger,
     printQRInTerminal: true,
     auth: {
       creds: state.creds,
@@ -79,7 +80,6 @@ export async function connectToWhatsApp(number: string, io: Socket) {
 
         if (qr?.length) {
           logger.warn("QRCODE");
-          console.log(qr);
           if (
             (device?.status === "Connected" &&
               update.connection === "connecting") ||
@@ -90,7 +90,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
               data: { status: "Disconnect" },
             });
           }
-          let qrcode = await toDataURL(qr);
+          const qrcode = await toDataURL(qr);
           io.emit("qrcode", {
             token: number,
             data: qrcode,
@@ -103,22 +103,22 @@ export async function connectToWhatsApp(number: string, io: Socket) {
             where: { id: device?.id },
             data: { status: "Connected" },
           });
-          const [result] = await sock.onWhatsApp(sock.user?.id ?? "");
+          const [result] = await sock.onWhatsApp(number ?? "");
           let ppUrl;
           try {
             ppUrl = await sock.profilePictureUrl(result.jid, "image");
           } catch (error) {
             logger.error("PROFILE NOT FOUND");
           }
-          if (result.jid.replace(/\D/g, "") != number.toString()) {
+          if (result?.jid?.replace(/\D/g, "") != number.toString()) {
             io.emit("number-mismatch");
             await sock.logout();
           } else {
             io.emit("connection-open", {
-              token: result.jid.replace(/\D/g, ""),
+              token: result?.jid?.replace(/\D/g, ""),
               user: {
                 name: sock.user?.name,
-                id: result.jid.replace(/\D/g, ""),
+                id: result?.jid?.replace(/\D/g, ""),
               },
               ppUrl: ppUrl ?? null,
             });
@@ -162,11 +162,11 @@ export async function connectToWhatsApp(number: string, io: Socket) {
       if (events["creds.update"]) {
         await saveCreds();
       }
-      
+
       //Initialize autoreplies
-      if (events['messages.upsert']) {
-        const upsert = events['messages.upsert']
-        initAutoreply(upsert, number)
+      if (events["messages.upsert"]) {
+        const upsert = events["messages.upsert"];
+        initAutoreply(upsert, number);
       }
     }
   );
@@ -181,6 +181,7 @@ export const initializeWhatsapp = async (number: string) => {
   logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
   const sock = makeWASocket({
     // can provide additional config here
+    logger,
     version,
     printQRInTerminal: true,
     auth: {
@@ -206,7 +207,6 @@ export const initializeWhatsapp = async (number: string) => {
 
         if (qr?.length) {
           logger.warn("QRCODE");
-          console.log(qr);
           if (
             (device?.status === "Connected" &&
               update.connection === "connecting") ||
@@ -224,13 +224,6 @@ export const initializeWhatsapp = async (number: string) => {
             where: { id: device?.id },
             data: { status: "Connected" },
           });
-          const [result] = await sock.onWhatsApp(sock.user?.id ?? "");
-          let ppUrl;
-          try {
-            ppUrl = await sock.profilePictureUrl(result.jid, "image");
-          } catch (error) {
-            logger.error("PROFILE NOT FOUND");
-          }
         }
         if (connection === "close") {
           // reconnect if not logged out
@@ -272,9 +265,9 @@ export const initializeWhatsapp = async (number: string) => {
       }
 
       //Initialize autoreplies
-      if (events['messages.upsert']) {
-        const upsert = events['messages.upsert']
-        initAutoreply(upsert, number)
+      if (events["messages.upsert"]) {
+        const upsert = events["messages.upsert"];
+        initAutoreply(upsert, number);
       }
     }
   );

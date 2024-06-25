@@ -1,7 +1,6 @@
 import { sessions } from ".";
 import { IUpsert } from "./types/bailey";
 import { prisma } from "./utils/db";
-import logger from "./utils/logger";
 import { sendBlast } from "./utils/message";
 
 const initAutoreply = async (upsert: IUpsert, number: string) => {
@@ -11,8 +10,14 @@ const initAutoreply = async (upsert: IUpsert, number: string) => {
   const client = sessions.get(number);
   if (client) {
     autoreplies.map((autoreply) => {
-      upsert.messages.map((message) => {        
-        if ((message.message?.extendedTextMessage?.text ?? message.message?.conversation) == autoreply.keyword) {          
+      upsert.messages.map((message) => {
+        if (
+          (
+            message.message?.extendedTextMessage?.text ??
+            message.message?.conversation
+          )?.toLowerCase() == autoreply.keyword.toLowerCase() &&
+          !message.key.fromMe
+        ) {
           sendBlast(
             client,
             message.key.remoteJid ?? "",

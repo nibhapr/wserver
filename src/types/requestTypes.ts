@@ -21,3 +21,9 @@ export interface ISendBulk {
   delay: number  
 }
 
+export interface IResponse {
+  status: boolean
+  message: string
+  append?: any
+}
+
