@@ -13,9 +13,10 @@ import { toDataURL } from "qrcode";
 import { prisma } from "./utils/db";
 import { sessions } from ".";
 import initAutoreply from "./autoreply";
+import initDebug from "./initDebug";
 
 const logger = MAIN_LOGGER.child({});
-logger.level = "trace";
+logger.level = "info";
 
 const msgRetryCounterCache = new NodeCache();
 
@@ -48,7 +49,7 @@ export async function LogoutDevice(number: string, io: Socket) {
 }
 
 export async function connectToWhatsApp(number: string, io: Socket) {
-  logger.info("SOCKET READY");
+  logger.info("CONNECT TO WHATSAPP");
   const { state, saveCreds } = await useMultiFileAuthState(`${number}`);
   const { version, isLatest } = await fetchLatestBaileysVersion();
   logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
@@ -77,7 +78,6 @@ export async function connectToWhatsApp(number: string, io: Socket) {
         });
         const update = events["connection.update"];
         const { connection, lastDisconnect, qr } = update;
-
         if (qr?.length) {
           logger.warn("QRCODE");
           if (
@@ -99,28 +99,27 @@ export async function connectToWhatsApp(number: string, io: Socket) {
         }
 
         if (connection === "open") {
+          const connectedDevice = sock.user;
+          const connectedNumber = connectedDevice?.id
+            .split(":")[0]
+            .replace(/\D/g, "");
           await prisma.numbers.update({
             where: { id: device?.id },
             data: { status: "Connected" },
           });
-          const [result] = await sock.onWhatsApp(number ?? "");
-          let ppUrl;
-          try {
-            ppUrl = await sock.profilePictureUrl(result.jid, "image");
-          } catch (error) {
-            logger.error("PROFILE NOT FOUND");
-          }
-          if (result?.jid?.replace(/\D/g, "") != number.toString()) {
+       
+          if (connectedNumber != number.toString()) {
             io.emit("number-mismatch");
             await sock.logout();
           } else {
+            logger.info("EMITTING CONNECTION OPEN");
             io.emit("connection-open", {
-              token: result?.jid?.replace(/\D/g, ""),
+              token: connectedNumber,
               user: {
-                name: sock.user?.name,
-                id: result?.jid?.replace(/\D/g, ""),
+                name: connectedDevice?.name,
+                id: connectedNumber,
               },
-              ppUrl: ppUrl ?? null,
+              ppUrl:  await sock.profilePictureUrl(sock.user?.id ?? "")
             });
           }
         }
@@ -167,6 +166,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
       if (events["messages.upsert"]) {
         const upsert = events["messages.upsert"];
         initAutoreply(upsert, number);
+        initDebug(upsert, number);
       }
     }
   );
@@ -175,7 +175,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
 }
 
 export const initializeWhatsapp = async (number: string) => {
-  logger.info("SOCKET READY");
+  logger.info("INTITIALIZE WHATSAPP");
   const { state, saveCreds } = await useMultiFileAuthState(`${number}`);
   const { version, isLatest } = await fetchLatestBaileysVersion();
   logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
@@ -199,12 +199,13 @@ export const initializeWhatsapp = async (number: string) => {
       // something about the connection changed
       // maybe it closed, or we received all offline message or connection opened
       if (events["connection.update"]) {
+        const connectedDevice = sock.user?.id.split(":")[0].replace(/\D/g, "");
+        logger.info(`Connected to ${connectedDevice}`);
         const device = await prisma.numbers.findFirst({
           where: { body: number },
         });
         const update = events["connection.update"];
-        const { connection, lastDisconnect, qr } = update;
-
+        const { connection, lastDisconnect, qr, legacy } = update;
         if (qr?.length) {
           logger.warn("QRCODE");
           if (
@@ -268,6 +269,7 @@ export const initializeWhatsapp = async (number: string) => {
       if (events["messages.upsert"]) {
         const upsert = events["messages.upsert"];
         initAutoreply(upsert, number);
+        initDebug(upsert, number);
       }
     }
   );

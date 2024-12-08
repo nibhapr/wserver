@@ -35,8 +35,9 @@ const qrcode_1 = require("qrcode");
 const db_1 = require("./utils/db");
 const _1 = require(".");
 const autoreply_1 = __importDefault(require("./autoreply"));
+const initDebug_1 = __importDefault(require("./initDebug"));
 const logger = logger_1.default.child({});
-logger.level = "trace";
+logger.level = "info";
 const msgRetryCounterCache = new node_cache_1.default();
 // const store = makeInMemoryStore({ logger });
 // store?.readFromFile("./baileys_store_multi.json");
@@ -64,7 +65,7 @@ async function LogoutDevice(number, io) {
 }
 exports.LogoutDevice = LogoutDevice;
 async function connectToWhatsApp(number, io) {
-    logger.info("SOCKET READY");
+    logger.info("CONNECT TO WHATSAPP");
     const { state, saveCreds } = await (0, baileys_1.useMultiFileAuthState)(`${number}`);
     const { version, isLatest } = await (0, baileys_1.fetchLatestBaileysVersion)();
     logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
@@ -84,7 +85,7 @@ async function connectToWhatsApp(number, io) {
     sock.ev.process(
     // events is a map for event name => event data
     async (events) => {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e;
         // something about the connection changed
         // maybe it closed, or we received all offline message or connection opened
         if (events["connection.update"]) {
@@ -111,39 +112,34 @@ async function connectToWhatsApp(number, io) {
                 });
             }
             if (connection === "open") {
+                const connectedDevice = sock.user;
+                const connectedNumber = connectedDevice === null || connectedDevice === void 0 ? void 0 : connectedDevice.id.split(":")[0].replace(/\D/g, "");
                 await db_1.prisma.numbers.update({
                     where: { id: device === null || device === void 0 ? void 0 : device.id },
                     data: { status: "Connected" },
                 });
-                const [result] = await sock.onWhatsApp(number !== null && number !== void 0 ? number : "");
-                let ppUrl;
-                try {
-                    ppUrl = await sock.profilePictureUrl(result.jid, "image");
-                }
-                catch (error) {
-                    logger.error("PROFILE NOT FOUND");
-                }
-                if (((_a = result === null || result === void 0 ? void 0 : result.jid) === null || _a === void 0 ? void 0 : _a.replace(/\D/g, "")) != number.toString()) {
+                if (connectedNumber != number.toString()) {
                     io.emit("number-mismatch");
                     await sock.logout();
                 }
                 else {
+                    logger.info("EMITTING CONNECTION OPEN");
                     io.emit("connection-open", {
-                        token: (_b = result === null || result === void 0 ? void 0 : result.jid) === null || _b === void 0 ? void 0 : _b.replace(/\D/g, ""),
+                        token: connectedNumber,
                         user: {
-                            name: (_c = sock.user) === null || _c === void 0 ? void 0 : _c.name,
-                            id: (_d = result === null || result === void 0 ? void 0 : result.jid) === null || _d === void 0 ? void 0 : _d.replace(/\D/g, ""),
+                            name: connectedDevice === null || connectedDevice === void 0 ? void 0 : connectedDevice.name,
+                            id: connectedNumber,
                         },
-                        ppUrl: ppUrl !== null && ppUrl !== void 0 ? ppUrl : null,
+                        ppUrl: await sock.profilePictureUrl((_b = (_a = sock.user) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : "")
                     });
                 }
             }
             if (connection === "close") {
                 // reconnect if not logged out
-                if (((_e = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _e === void 0 ? void 0 : _e.output.statusCode) === 515) {
+                if (((_c = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _c === void 0 ? void 0 : _c.output.statusCode) === 515) {
                     connectToWhatsApp(`${number}`, io);
                 }
-                if (((_g = (_f = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _f === void 0 ? void 0 : _f.output) === null || _g === void 0 ? void 0 : _g.statusCode) !==
+                if (((_e = (_d = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _d === void 0 ? void 0 : _d.output) === null || _e === void 0 ? void 0 : _e.statusCode) !==
                     baileys_1.DisconnectReason.loggedOut) {
                     if ((device === null || device === void 0 ? void 0 : device.status) === "Connected") {
                         await db_1.prisma.numbers.update({
@@ -177,13 +173,14 @@ async function connectToWhatsApp(number, io) {
         if (events["messages.upsert"]) {
             const upsert = events["messages.upsert"];
             (0, autoreply_1.default)(upsert, number);
+            (0, initDebug_1.default)(upsert, number);
         }
     });
     _1.sessions.set(number, sock);
 }
 exports.connectToWhatsApp = connectToWhatsApp;
 const initializeWhatsapp = async (number) => {
-    logger.info("SOCKET READY");
+    logger.info("INTITIALIZE WHATSAPP");
     const { state, saveCreds } = await (0, baileys_1.useMultiFileAuthState)(`${number}`);
     const { version, isLatest } = await (0, baileys_1.fetchLatestBaileysVersion)();
     logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
@@ -203,15 +200,17 @@ const initializeWhatsapp = async (number) => {
     sock.ev.process(
     // events is a map for event name => event data
     async (events) => {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         // something about the connection changed
         // maybe it closed, or we received all offline message or connection opened
         if (events["connection.update"]) {
+            const connectedDevice = (_a = sock.user) === null || _a === void 0 ? void 0 : _a.id.split(":")[0].replace(/\D/g, "");
+            logger.info(`Connected to ${connectedDevice}`);
             const device = await db_1.prisma.numbers.findFirst({
                 where: { body: number },
             });
             const update = events["connection.update"];
-            const { connection, lastDisconnect, qr } = update;
+            const { connection, lastDisconnect, qr, legacy } = update;
             if (qr === null || qr === void 0 ? void 0 : qr.length) {
                 logger.warn("QRCODE");
                 if (((device === null || device === void 0 ? void 0 : device.status) === "Connected" &&
@@ -231,10 +230,10 @@ const initializeWhatsapp = async (number) => {
             }
             if (connection === "close") {
                 // reconnect if not logged out
-                if (((_a = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _a === void 0 ? void 0 : _a.output.statusCode) === 515) {
+                if (((_b = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _b === void 0 ? void 0 : _b.output.statusCode) === 515) {
                     (0, exports.initializeWhatsapp)(number);
                 }
-                if (((_c = (_b = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _b === void 0 ? void 0 : _b.output) === null || _c === void 0 ? void 0 : _c.statusCode) !==
+                if (((_d = (_c = lastDisconnect === null || lastDisconnect === void 0 ? void 0 : lastDisconnect.error) === null || _c === void 0 ? void 0 : _c.output) === null || _d === void 0 ? void 0 : _d.statusCode) !==
                     baileys_1.DisconnectReason.loggedOut) {
                     if ((device === null || device === void 0 ? void 0 : device.status) === "Connected") {
                         await db_1.prisma.numbers.update({
@@ -268,6 +267,7 @@ const initializeWhatsapp = async (number) => {
         if (events["messages.upsert"]) {
             const upsert = events["messages.upsert"];
             (0, autoreply_1.default)(upsert, number);
+            (0, initDebug_1.default)(upsert, number);
         }
     });
     _1.sessions.set(number, sock);

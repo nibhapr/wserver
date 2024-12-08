@@ -29,8 +29,8 @@ app.post('/delete-device', (_req: Request, res: Response) => {
 initSessions()
 
 io.on("connection", (socket) => {           
-  logger.info(socket.id)
   // Initialize All devices and set Sessions
+  logger.info('Socket Connected')
   socket.on('StartConnection', (number: string) => {    
     connectToWhatsApp(number, socket) // init a particular device
   })
