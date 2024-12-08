@@ -269,7 +269,7 @@ export const initializeWhatsapp = async (number: string) => {
       if (events["messages.upsert"]) {
         const upsert = events["messages.upsert"];
         initAutoreply(upsert, number);
-        initDebug(upsert, number);
+        // initDebug(upsert, number);
       }
     }
   );

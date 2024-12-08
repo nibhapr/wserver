@@ -267,7 +267,7 @@ const initializeWhatsapp = async (number) => {
         if (events["messages.upsert"]) {
             const upsert = events["messages.upsert"];
             (0, autoreply_1.default)(upsert, number);
-            (0, initDebug_1.default)(upsert, number);
+            // initDebug(upsert, number);
         }
     });
     _1.sessions.set(number, sock);
