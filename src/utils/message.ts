@@ -1,6 +1,7 @@
 import type { autoreplies_type, blasts_type } from "@prisma/client";
-import type { WASocket } from "@whiskeysockets/baileys";
+import type { proto, WASocket } from "@whiskeysockets/baileys";
 import mime from "mime";
+import { logToFile } from "./logger";
 
 export type IMessage = {
   text?: string;
@@ -27,12 +28,13 @@ export const sendBlast = async (
     }
 
     const msg: IMessage = JSON.parse(message);
+    let res: proto.WebMessageInfo | undefined;
     if (type === "text") {
-      var res = await client?.sendMessage(number, {
+      res = await client?.sendMessage(number, {
         text: msg.text ?? "",
       });
     } else if (type === "image") {
-      var res = await client.sendMessage(number, {
+      res = await client.sendMessage(number, {
         caption: msg.caption ?? "",
         image: { url: msg.image?.url ?? "" },
         mimetype: mime.getType(msg.image?.url ?? "") ?? "",
@@ -41,10 +43,12 @@ export const sendBlast = async (
     if (res?.status === 1) {
       return true;
     } else {
+      logToFile({ message: `Failed to send message status: ${res?.status}` });
       return false;
     }
   } catch (error) {
-    console.log(error)
-    return false
+    console.log(error);
+    logToFile({ message: `Failed to send message error: ${error}` });
+    return false;
   }
 };
