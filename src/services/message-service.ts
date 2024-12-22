@@ -3,8 +3,12 @@ import { prisma } from "../utils/db";
 import { blasts } from "@prisma/client";
 import { sendBlast } from "../utils/message";
 
-const fakeSend = (ms: number) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+const fakeSend = (delay: number): Promise<boolean> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(true);
+    }, delay);
+  });
 };
 
 export const sendEachBlast = async (
@@ -13,7 +17,7 @@ export const sendEachBlast = async (
   client: WASocket
 ) => {
   for await (const [idx, blast] of blasts.entries()) {
-    let result;
+    let result: boolean;
     setTimeout(async () => {
       if (
         blast.receiver == "918943025837" ||

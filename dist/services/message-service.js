@@ -10,8 +10,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEachBlast = void 0;
 const db_1 = require("../utils/db");
 const message_1 = require("../utils/message");
-const fakeSend = (ms) => {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+const fakeSend = (delay) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve(true);
+        }, delay);
+    });
 };
 const sendEachBlast = async (blasts, delay, client) => {
     var _a, e_1, _b, _c;
