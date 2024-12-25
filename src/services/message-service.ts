@@ -8,32 +8,32 @@ export const sendEachBlast = async (
   delay: number,
   client: WASocket
 ) => {
-  for await (const [idx, blast] of blasts.entries()) {
-    setTimeout(async () => {
-      const result = await sendBlast(
-        client,
-        blast.receiver,
-        blast.message,
-        blast.type
-      );
+  for (const [idx, blast] of blasts.entries()) {
+    await new Promise((resolve) => setTimeout(resolve, delay * 1000 * idx));
 
-      if (result) {
-        await prisma.blasts.update({
-          where: { id: blast.id },
-          data: {
-            status: "success",
-            updated_at: new Date(),
-          },
-        });
-      } else {
-        await prisma.blasts.update({
-          where: { id: blast.id },
-          data: {
-            status: "failed",
-            updated_at: new Date(),
-          },
-        });
-      }
-    }, delay * 1000 * idx);
+    const result = await sendBlast(
+      client,
+      blast.receiver,
+      blast.message,
+      blast.type
+    );
+
+    if (result) {
+      await prisma.blasts.update({
+        where: { id: blast.id },
+        data: {
+          status: "success",
+          updated_at: new Date(),
+        },
+      });
+    } else {
+      await prisma.blasts.update({
+        where: { id: blast.id },
+        data: {
+          status: "failed",
+          updated_at: new Date(),
+        },
+      });
+    }
   }
 };
