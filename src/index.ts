@@ -6,6 +6,7 @@ import { WASocket } from "@whiskeysockets/baileys";
 import bodyParser from "body-parser";
 import initSessions from "./initSessions";
 import routes from "./routes";
+import apiRoutes from "./routes/webhook";
 import logger from "./utils/logger";
 
 type Session = WASocket
@@ -21,6 +22,7 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: false,limit: '50mb',parameterLimit: 100000 }))
 app.use(bodyParser.json())
 app.use('/', routes)
+app.use('/api', apiRoutes)
 
 app.post('/delete-device', (_req: Request, res: Response) => {
   res.status(200).json({message: 'DELETED!'})

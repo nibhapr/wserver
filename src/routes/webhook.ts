@@ -1,7 +1,14 @@
 import { Router } from "express";
-import { createCart } from "../controllers/webhook";
-const router = Router({mergeParams: true})
+const router = Router();
 
-router.post('/cart-create', createCart)
+router.post("/order-payment", (req, res) => {
+  console.log(req.body);
+  res.status(200).json({ message: "sent!", status: true });
+});
 
-export default router
+router.post("/cart-create", (req, res) => {
+  console.log(req.body);
+  res.status(200).json({ message: "sent!", status: true });
+});
+
+export default router;

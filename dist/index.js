@@ -11,6 +11,7 @@ const socket_io_1 = require("socket.io");
 const body_parser_1 = __importDefault(require("body-parser"));
 const initSessions_1 = __importDefault(require("./initSessions"));
 const routes_1 = __importDefault(require("./routes"));
+const webhook_1 = __importDefault(require("./routes/webhook"));
 const logger_1 = __importDefault(require("./utils/logger"));
 exports.sessions = new Map();
 // Boot express
@@ -21,6 +22,7 @@ const port = 3000;
 app.use(body_parser_1.default.urlencoded({ extended: false, limit: '50mb', parameterLimit: 100000 }));
 app.use(body_parser_1.default.json());
 app.use('/', routes_1.default);
+app.use('/api', webhook_1.default);
 app.post('/delete-device', (_req, res) => {
     res.status(200).json({ message: 'DELETED!' });
 });
