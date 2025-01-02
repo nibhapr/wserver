@@ -1,16 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+// import { getWebhookUser } from "../services/webhook-service";
 const __1 = require("..");
 const router = (0, express_1.Router)();
 router.post("/order-payment", async (req, res) => {
-    var _a;
-    console.log(req);
+    // const number = await getWebhookUser(req.rawBody ?? "", req.headers['x-shopify-hmac-sha256'] as string);
+    // if (!number) {
+    //   res.status(403).json({ message: "Invalid webhook", status: false });
+    //   return;
+    // }
     const client = __1.sessions.get("917012749946");
-    const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp("917902708908"));
-    await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
-        text: (_a = JSON.stringify(req)) !== null && _a !== void 0 ? _a : "",
-    }));
+    await (client === null || client === void 0 ? void 0 : client.sendMessage(req.body['shipping_address']['phone'], { text: `Your order has been received!` }));
     res.status(200).json({ message: "sent!", status: true });
 });
 router.post("/cart-create", (req, res) => {

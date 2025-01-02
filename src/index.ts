@@ -1,4 +1,5 @@
 import express, { Application, Request, Response } from "express";
+import { IncomingMessage } from "http";
 import { LogoutDevice, connectToWhatsApp } from "./whatsapp";
 import { createServer } from "http";
 import { Server as SocketServer } from "socket.io";
@@ -18,9 +19,13 @@ const app: Application = express();
 const server = createServer(app);
 export const io = new SocketServer(server, {cors: {origin: '*'}});
 const port = 3000;
-
-app.use(bodyParser.urlencoded({ extended: false,limit: '50mb',parameterLimit: 100000 }))
-app.use(bodyParser.json())
+app.use(bodyParser.json({
+  verify(req: Request & { rawBody?: string }, _res: Response, buf: Buffer, encoding: BufferEncoding) {
+    if (buf && buf.length) {
+      req.rawBody = buf.toString(encoding || 'utf-8')
+    }
+  },
+}))
 app.use('/', routes)
 app.use('/api', apiRoutes)
 

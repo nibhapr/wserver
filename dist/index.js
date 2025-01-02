@@ -19,8 +19,13 @@ const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 exports.io = new socket_io_1.Server(server, { cors: { origin: '*' } });
 const port = 3000;
-app.use(body_parser_1.default.urlencoded({ extended: false, limit: '50mb', parameterLimit: 100000 }));
-app.use(body_parser_1.default.json());
+app.use(body_parser_1.default.json({
+    verify(req, _res, buf, encoding) {
+        if (buf && buf.length) {
+            req.rawBody = buf.toString(encoding || 'utf-8');
+        }
+    },
+}));
 app.use('/', routes_1.default);
 app.use('/api', webhook_1.default);
 app.post('/delete-device', (_req, res) => {

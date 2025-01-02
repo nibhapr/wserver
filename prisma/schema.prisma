@@ -82,6 +82,7 @@ model numbers {
   status        numbers_status
   created_at    DateTime?      @db.Timestamp(0)
   updated_at    DateTime?      @db.Timestamp(0)
+  users         users?         @relation(fields: [user_id], references: [id])
 }
 
 model personal_access_tokens {
@@ -130,6 +131,7 @@ model users {
   email_verified_at    DateTime?                 @db.Timestamp(0)
   password             String                    @db.VarChar(255)
   api_key              String                    @db.VarChar(255)
+  shopify_webhook      String?                   @db.VarChar(255)
   chunk_blast          Int
   level                users_level               @default(user)
   status               users_status              @default(active)
@@ -141,6 +143,7 @@ model users {
   updated_at           DateTime?                 @db.Timestamp(0)
   blasts               blasts[]
   campaigns            campaigns[]
+  numbers              numbers[]
 }
 
 enum autoreplies_type {

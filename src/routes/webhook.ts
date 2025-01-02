@@ -1,14 +1,15 @@
-import { Router } from "express";
+import { Request, Router } from "express";
+// import { getWebhookUser } from "../services/webhook-service";
 import { sessions } from "..";
 const router = Router();
-
-router.post("/order-payment", async (req, res) => {
-  console.log(req);
+router.post("/order-payment", async (req: Request & {rawBody?: string}, res) => {
+  // const number = await getWebhookUser(req.rawBody ?? "", req.headers['x-shopify-hmac-sha256'] as string);
+  // if (!number) {
+  //   res.status(403).json({ message: "Invalid webhook", status: false });
+  //   return;
+  // }
   const client = sessions.get("917012749946");
-  const result = await client?.onWhatsApp("917902708908");
-  await client?.sendMessage(result ? result[0].jid : "", {
-    text: JSON.stringify(req) ?? "",
-  });
+  await client?.sendMessage(req.body['shipping_address']['phone'], {text: `Your order has been received!`});
   res.status(200).json({ message: "sent!", status: true });
 });
 
