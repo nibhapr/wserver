@@ -17,7 +17,8 @@ router.post(
     );
     await client?.sendMessage(result ? result[0].jid : "", {
       text: "Your order has been received!",
-      image: { url: "https://lovosis.in/logo.jpg" }
+      image: { url: "https://lovosis.in/logo.jpg" },
+      caption:"your order"
     });
     res.status(200).json({ message: "sent!", status: true });
   }
@@ -31,7 +32,8 @@ router.post("/cart-create", async (req, res) => {
     );
     await client?.sendMessage(result ? result[0].jid : "", {
       text: "Your order has been received!",
-      image: { url: "https://lovosis.in/logo.jpg" }
+      image: { url: "https://lovosis.in/logo.jpg" },
+      caption:"your order"
     });
     res.status(200).json({ message: "sent!", status: true });
 });
