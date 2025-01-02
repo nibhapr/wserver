@@ -9,7 +9,10 @@ router.post("/order-payment", async (req: Request & {rawBody?: string}, res) => 
   //   return;
   // }
   const client = sessions.get("917012749946");
-  await client?.sendMessage(req.body['shipping_address']['phone'], {text: `Your order has been received!`});
+  const result = await client?.onWhatsApp(req.body['shipping_address']['phone']);
+  await client?.sendMessage(result ? result[0].jid : "", {
+    text: 'Your order has been received!'
+  });
   res.status(200).json({ message: "sent!", status: true });
 });
 
