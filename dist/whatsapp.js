@@ -35,7 +35,6 @@ const qrcode_1 = require("qrcode");
 const db_1 = require("./utils/db");
 const _1 = require(".");
 const autoreply_1 = __importDefault(require("./autoreply"));
-const initDebug_1 = __importDefault(require("./initDebug"));
 const logger = logger_1.default.child({});
 logger.level = "info";
 const msgRetryCounterCache = new node_cache_1.default();
@@ -173,7 +172,7 @@ async function connectToWhatsApp(number, io) {
         if (events["messages.upsert"]) {
             const upsert = events["messages.upsert"];
             (0, autoreply_1.default)(upsert, number);
-            (0, initDebug_1.default)(upsert, number);
+            // initDebug(upsert, number);
         }
     });
     _1.sessions.set(number, sock);

@@ -166,7 +166,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
       if (events["messages.upsert"]) {
         const upsert = events["messages.upsert"];
         initAutoreply(upsert, number);
-        initDebug(upsert, number);
+        // initDebug(upsert, number);
       }
     }
   );
