@@ -16,7 +16,7 @@ router.post(
       req.body["billing_address"]["phone"].replace(/\D/g, "")
     );
     await client?.sendMessage(result ? result[0].jid : "", {
-      text: "Your order has been received!",
+      text: "Your order has been confirmed tracking number [Tracking Number]. Delivery within two working days. For any inquiries, WhatsApp us at +971563680897. Watch product videos on our social media: https://linktr.ee/chenarabia?utm_source=linktree_profile_share&ltsid=a25f405b-ead5-4d39-9502-b5b102f1b6a4",
       image: { url: "https://lovosis.in/logo.jpg" },
       caption:"your order"
     });
@@ -31,7 +31,7 @@ router.post("/cart-create", async (req, res) => {
       req.body["billing_address"]["phone"].replace(/\D/g, "")
     );
     await client?.sendMessage(result ? result[0].jid : "", {
-      text: "Your order has been received!",
+      text: "Your order has been confirmed tracking number [Tracking Number]. Delivery within two working days. For any inquiries, WhatsApp us at +971563680897. Watch product videos on our social media: https://linktr.ee/chenarabia?utm_source=linktree_profile_share&ltsid=a25f405b-ead5-4d39-9502-b5b102f1b6a4",
       image: { url: "https://lovosis.in/logo.jpg" },
       caption:"your order"
     });
