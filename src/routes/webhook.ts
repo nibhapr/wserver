@@ -17,6 +17,7 @@ router.post(
     );
     await client?.sendMessage(result ? result[0].jid : "", {
       text: "Your order has been received!",
+      image: { url: "https://lovosis.in/logo.jpg" }
     });
     res.status(200).json({ message: "sent!", status: true });
   }
