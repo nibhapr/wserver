@@ -32,7 +32,6 @@ router.post("/cart-create", async (req, res) => {
       text: "Your order has been received!",
     });
     res.status(200).json({ message: "sent!", status: true });
-  res.status(200).json({ message: "sent!", status: true });
 });
 
 export default router;
