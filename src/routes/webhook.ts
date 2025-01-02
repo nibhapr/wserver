@@ -8,8 +8,9 @@ router.post("/order-payment", async (req: Request & {rawBody?: string}, res) => 
   //   res.status(403).json({ message: "Invalid webhook", status: false });
   //   return;
   // }
+  console.log(req.body['billing_address']['phone'])
   const client = sessions.get("917012749946");
-  const result = await client?.onWhatsApp(req.body['shipping_address']['phone'].replace(/\D/g, ""));
+  const result = await client?.onWhatsApp(req.body['billing_address']['phone'].replace(/\D/g, ""));
   await client?.sendMessage(result ? result[0].jid : "", {
     text: 'Your order has been received!'
   });
