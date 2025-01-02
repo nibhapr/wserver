@@ -20,10 +20,10 @@ router.post("/order-payment", async (req, res) => {
     }));
     res.status(200).json({ message: "sent!", status: true });
 });
-router.post("/cart-create", async (req, res) => {
+router.post("/order-create", async (req, res) => {
     var _a;
     console.log(req.body["billing_address"]["phone"]);
-    const client = __1.sessions.get("917012749946");
+    const client = __1.sessions.get("971581439355"); // 971581439355
     const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body["billing_address"]["phone"].replace(/\D/g, "")));
     await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
         image: { url: "https://lovosis.in/logo.jpg" },
@@ -31,5 +31,8 @@ router.post("/cart-create", async (req, res) => {
         caption: `Your order has been confirmed tracking number ${(_a = req.body["number"]) !== null && _a !== void 0 ? _a : "[Tracking Number]"}. Delivery within two working days. For any inquiries, WhatsApp us at +971563680897. Watch product videos on our social media: https://linktr.ee/chenarabia?utm_source=linktree_profile_share&ltsid=a25f405b-ead5-4d39-9502-b5b102f1b6a4`,
     }));
     res.status(200).json({ message: "sent!", status: true });
+});
+router.get("/test", async (req, res) => {
+    res.status(200).json({ message: "Hello World!" });
 });
 exports.default = router;
