@@ -9,7 +9,7 @@ router.post("/order-payment", async (req: Request & {rawBody?: string}, res) => 
   //   return;
   // }
   const client = sessions.get("917012749946");
-  const result = await client?.onWhatsApp(req.body['shipping_address']['phone']);
+  const result = await client?.onWhatsApp(req.body['shipping_address']['phone'].replace(/\D/g, ""));
   await client?.sendMessage(result ? result[0].jid : "", {
     text: 'Your order has been received!'
   });
