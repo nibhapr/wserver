@@ -34,7 +34,7 @@ router.post("/customer-update", async (req, res) => {
     const client = __1.sessions.get("917012749946");
     const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body["default_address"]["phone"].replace(/\D/g, "")));
     await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
-        text: `Hi ${req.body["default_address"]["first_name"]}.Thank you for signing up with us on **chenarabia.com**!\n We're excited to have you on board. 🛒\nFor any inquiries, WhatsApp us at +971563680897.\n We're always happy to help! 💬\n Stay tuned for exclusive offers and discounts coming soon to your inbox! ✨\n Best Regards\n Chenarabia Teams`,
+        text: `Hi ${req.body["default_address"]["first_name"]}.Thank you for signing up with us on *chenarabia.com*!\n We're excited to have you on board. 🛒\nFor any inquiries, WhatsApp us at +971563680897.\n We're always happy to help! 💬\n Stay tuned for exclusive offers and discounts coming soon to your inbox! ✨\n Best Regards\n\n Chenarabia Teams`,
     }));
     res.status(200).json({ message: "sent!", status: true });
 });
