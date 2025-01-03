@@ -59,6 +59,17 @@ router.post("/order-update", async (req, res) => {
   });
   res.status(200).json({ message: "sent!", status: true });
 });
+router.post("/fullfilment_creation", async (req, res) => {
+  console.log(req.body["first_name"]);
+  const client = sessions.get("917012749946");
+  const result = await client?.onWhatsApp(
+    req.body["default_address"]["phone"].replace(/\D/g, "")
+  );
+  await client?.sendMessage(result ? result[0].jid : "", {
+    text: `Hi ${req.body["destination"]["first_name"]}.We wanted to inform you that your 🚚 Shipping Status status is: #${req.body["status"]}.\n Your tracking number is:${req.body["tracking_number"]}\n Track your order from:${req.body["tracking_url"]}. 😊\n Best Regards\n\n Chenarabia Teams`,
+  });
+  res.status(200).json({ message: "sent!", status: true });
+});
 
 router.post("/test", async (req, res) => {
   console.log(req.body);
