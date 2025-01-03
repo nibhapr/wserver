@@ -31,7 +31,7 @@ router.post("/order-create", async (req, res) => {
     req.body["billing_address"]["phone"].replace(/\D/g, "")
   );
   await client?.sendMessage(result ? result[0].jid : "", {
-    text: `Hi ${req.body["billing_address"]["first_name"]}.Thank you for your order! 🎉\n\n Here are your order details:\n\n order number:${req.body["order_number"]}\n\n Track your order: ${req.body["order_status_url"]}\n\nFor any inquiries, WhatsApp us at +971563680897.\n\n`,
+    text: `Hi ${req.body["billing_address"]["first_name"]}.Thank you for your order! 🎉\n\n Here are your order details:\n order number:${req.body["order_number"]}\n Track your order: ${req.body["order_status_url"]}\n\nFor any inquiries, WhatsApp us at +971563680897.\nThank you for shopping with us 😊:\n *https://chenarabia.com*`,
   });
   res.status(200).json({ message: "sent!", status: true });
 });
