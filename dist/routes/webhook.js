@@ -32,7 +32,8 @@ router.post("/order-create", async (req, res) => {
     }));
     res.status(200).json({ message: "sent!", status: true });
 });
-router.get("/test", async (req, res) => {
+router.get("/customer-create", async (req, res) => {
+    console.log(req.body);
     res.status(200).json({ message: "Hello World!" });
 });
 exports.default = router;
