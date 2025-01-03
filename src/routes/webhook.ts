@@ -26,7 +26,7 @@ router.post(
 
 router.post("/order-create", async (req, res) => {
   console.log(req.body["billing_address"]["first_name"]);
-  const client = sessions.get("917012749946"); // 971581439355
+  const client = sessions.get("971567326895"); // 971581439355
   const result = await client?.onWhatsApp(
     req.body["billing_address"]["phone"].replace(/\D/g, "")
   );
@@ -38,7 +38,7 @@ router.post("/order-create", async (req, res) => {
 
 router.post("/customer-update", async (req, res) => {
   console.log(req.body["first_name"]);
-  const client = sessions.get("917012749946");
+  const client = sessions.get("971567326895");
   const result = await client?.onWhatsApp(
     req.body["default_address"]["phone"].replace(/\D/g, "")
   );
@@ -50,7 +50,7 @@ router.post("/customer-update", async (req, res) => {
 
 router.post("/order-update", async (req, res) => {
   console.log(req.body["first_name"]);
-  const client = sessions.get("917012749946");
+  const client = sessions.get("971567326895");
   const result = await client?.onWhatsApp(
     req.body["default_address"]["phone"].replace(/\D/g, "")
   );
@@ -61,7 +61,7 @@ router.post("/order-update", async (req, res) => {
 });
 router.post("/fullfilment_creation", async (req, res) => {
   console.log(req.body["first_name"]);
-  const client = sessions.get("917012749946");
+  const client = sessions.get("971567326895");
   const result = await client?.onWhatsApp(
     req.body["default_address"]["phone"].replace(/\D/g, "")
   );
