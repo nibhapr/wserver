@@ -29,7 +29,7 @@ router.post("/order-create", async (req, res) => {
     }));
     res.status(200).json({ message: "sent!", status: true });
 });
-router.post("/customer-create", async (req, res) => {
+router.post("/customer-update", async (req, res) => {
     console.log(req.body["first_name"]);
     const client = __1.sessions.get("917012749946");
     const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body["default_address"]["phone"].replace(/\D/g, "")));

@@ -36,7 +36,7 @@ router.post("/order-create", async (req, res) => {
   res.status(200).json({ message: "sent!", status: true });
 });
 
-router.post("/customer-create", async (req, res) => {
+router.post("/customer-update", async (req, res) => {
   console.log(req.body["first_name"]);
   const client = sessions.get("917012749946");
   const result = await client?.onWhatsApp(
@@ -47,9 +47,9 @@ router.post("/customer-create", async (req, res) => {
   });
   res.status(200).json({ message: "sent!", status: true });
 });
+
 router.post("/test", async (req, res) => {
   console.log(req.body);
-
   res.status(200).json({ message: "sent!", status: true });
 });
 export default router;
