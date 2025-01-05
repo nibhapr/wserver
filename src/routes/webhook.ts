@@ -55,7 +55,6 @@ router.post("/customer-update", async (req, res) => {
 });
 
 router.post("/order-update", async (req, res) => {
-  console.log(req.body["first_name"]);
   const client = sessions.get("971567326895");
   const result = await client?.onWhatsApp(
     req.body["billing_address"]["phone"].replace(/\D/g, "")
