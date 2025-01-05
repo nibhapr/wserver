@@ -82,7 +82,7 @@ router.post("/fullfilment_creation", async (req, res) => {
   res.status(200).json({ message: "sent!", status: true });
 });
 
-router.post("/testnew", async (req, res) => {
+router.post("/test", async (req, res) => {
   console.log(req.body);
   res.status(200).json({ message: "sent!", status: true });
 });
