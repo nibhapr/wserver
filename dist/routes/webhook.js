@@ -59,7 +59,7 @@ router.post("/fullfilment_creation", async (req, res) => {
     console.log(req.body["first_name"]);
     console.log(req.body);
     const client = __1.sessions.get("971567326895");
-    const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body["destination"]["phone"].replace(/\D/g, "")));
+    const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body["default_address"]["phone"].replace(/\D/g, "")));
     if (result) {
         await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
             text: `Hi ${req.body["destination"]["first_name"]}\n We wanted to inform you that your 🚚 Shipping Status status is: #${req.body["status"]}.\n Your tracking number is:${req.body["tracking_number"]}\n Track your order from:${req.body["tracking_url"]}. 😊\n Best Regards\n\n Chenarabia Teams`,

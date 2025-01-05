@@ -72,7 +72,7 @@ router.post("/fullfilment_creation", async (req, res) => {
   console.log(req.body);
   const client = sessions.get("971567326895");
   const result = await client?.onWhatsApp(
-    req.body["destination"]["phone"].replace(/\D/g, "")
+    req.body["default_address"]["phone"].replace(/\D/g, "")
   );
   if (result) {
     await client?.sendMessage(result ? result[0].jid : "", {
