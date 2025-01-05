@@ -82,7 +82,7 @@ router.post("/fullfilment_creation", async (req, res) => {
 });
 
 router.post("/test", async (req, res) => {
-  console.log(req.body["first_name"]);
+  console.log(req.body["customer"]["first_name"]);
   res.status(200).json({ message: "sent!", status: true });
 });
 export default router;
