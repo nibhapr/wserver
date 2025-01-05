@@ -23,8 +23,7 @@ router.post("/order-payment", async (req, res) => {
     res.status(200).json({ message: "sent!", status: true });
 });
 router.post("/order-create", async (req, res) => {
-    console.log(req.body["billing_address"]["first_name"]);
-    const client = __1.sessions.get("971567326895"); // 971581439355
+    const client = __1.sessions.get("971567326895");
     const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body["billing_address"]["phone"].replace(/\D/g, "")));
     if (result) {
         await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
@@ -66,7 +65,7 @@ router.post("/fullfilment_creation", async (req, res) => {
     res.status(200).json({ message: "sent!", status: true });
 });
 router.post("/test", async (req, res) => {
-    console.log(req.body["customer"]["first_name"]);
+    console.log(req.body);
     res.status(200).json({ message: "sent!", status: true });
 });
 exports.default = router;
