@@ -15,7 +15,7 @@ router.post(
     const result = await client?.onWhatsApp(
       req.body["billing_address"]["phone"].replace(/\D/g, "")
     );
-    if (result && result[0].exists) {
+    if (result) {
       await client?.sendMessage(result ? result[0].jid : "", {
         text: "Your order has been confirmed tracking number [Tracking Number]. Delivery within two working days. For any inquiries, WhatsApp us at +971563680897. Watch product videos on our social media: https://linktr.ee/chenarabia?utm_source=linktree_profile_share&ltsid=a25f405b-ead5-4d39-9502-b5b102f1b6a4",
         image: { url: "https://lovosis.in/logo.jpg" },
@@ -32,7 +32,7 @@ router.post("/order-create", async (req, res) => {
   const result = await client?.onWhatsApp(
     req.body["billing_address"]["phone"].replace(/\D/g, "")
   );
-  if (result && result[0].exists) {
+  if (result) {
     await client?.sendMessage(result ? result[0].jid : "", {
       text: `Hi ${req.body["billing_address"]["first_name"]}.Thank you for your order! 🎉\n\n Here are your order details:\n order number:${req.body["order_number"]}\n Track your order: ${req.body["order_status_url"]}\n\nFor any inquiries, WhatsApp us at +971563680897.\nThank you for shopping with us 😊:\n *https://chenarabia.com*`,
     });
@@ -46,7 +46,7 @@ router.post("/customer-update", async (req, res) => {
   const result = await client?.onWhatsApp(
     req.body["default_address"]["phone"].replace(/\D/g, "")
   );
-  if (result && result[0].exists) {
+  if (result) {
     await client?.sendMessage(result ? result[0].jid : "", {
       text: `Hi ${req.body["default_address"]["first_name"]}.Thank you for signing up with us on *chenarabia.com*!\n We're excited to have you on board. 🛒\nFor any inquiries, WhatsApp us at +971563680897.\n We're always happy to help! 💬\n Stay tuned for exclusive offers and discounts coming soon to your inbox! ✨\n Best Regards\n\n Chenarabia Teams`,
     });
@@ -60,7 +60,7 @@ router.post("/order-update", async (req, res) => {
   const result = await client?.onWhatsApp(
     req.body["default_address"]["phone"].replace(/\D/g, "")
   );
-  if (result && result[0].exists) {
+  if (result) {
     await client?.sendMessage(result ? result[0].jid : "", {
       text: `Hi ${req.body["customer"]["first_name"]}.We wanted to inform you that your order #${req.body["order_number"]} has been updated.\n 🚚 Shipping Status:${req.body["order_status_url"]}\nIf you have any questions,WhatsApp us at +971563680897.\n Thank you for shopping with us. 😊\n Best Regards\n\n Chenarabia Teams`,
     });
@@ -68,17 +68,17 @@ router.post("/order-update", async (req, res) => {
   res.status(200).json({ message: "sent!", status: true });
 });
 router.post("/fullfilment_creation", async (req, res) => {
-  // console.log(req.body["first_name"]);
+  console.log(req.body["first_name"]);
   console.log(req.body);
-  // const client = sessions.get("971567326895");
-  // const result = await client?.onWhatsApp(
-  //   req.body["default_address"]["phone"].replace(/\D/g, "")
-  // );
-  // if (result && result[0].exists) {
-  //   await client?.sendMessage(result ? result[0].jid : "", {
-  //     text: `Hi ${req.body["destination"]["first_name"]}\n We wanted to inform you that your 🚚 Shipping Status status is: #${req.body["status"]}.\n Your tracking number is:${req.body["tracking_number"]}\n Track your order from:${req.body["tracking_url"]}. 😊\n Best Regards\n\n Chenarabia Teams`,
-  //   });
-  // }
+  const client = sessions.get("971567326895");
+  const result = await client?.onWhatsApp(
+    req.body["destination"]["phone"].replace(/\D/g, "")
+  );
+  if (result) {
+    await client?.sendMessage(result ? result[0].jid : "", {
+      text: `Hi ${req.body["destination"]["first_name"]}\n We wanted to inform you that your 🚚 Shipping Status status is: #${req.body["status"]}.\n Your tracking number is:${req.body["tracking_number"]}\n Track your order from:${req.body["tracking_url"]}. 😊\n Best Regards\n\n Chenarabia Teams`,
+    });
+  }
   res.status(200).json({ message: "sent!", status: true });
 });
 
