@@ -37,7 +37,7 @@ router.post("/order-create", async (req, res) => {
     const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body["billing_address"]["phone"].replace(/\D/g, "")));
     if (result) {
         await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
-            text: `Hi ${req.body["billing_address"]["first_name"]}.Thank you for your order! 🎉\n\n Here are your order details:\n order number:${req.body["order_number"]}\n Track your order: ${req.body["order_status_url"]}\n\nFor any inquiries, WhatsApp us at +971563680897.\nThank you for shopping with us 😊:\n *https://chenarabia.com*`,
+            text: `Hi ${req.body["billing_address"]["first_name"]}.Thank you for your order! 🎉\n\n Here are your order details:\n order number:${req.body["order_number"]}\n Track your order: ${req.body["order_status_url"]}\n\nFor any inquiries, WhatsApp us at +971563680897.\nThank you for shopping with us 😊:\n *https://chenarabia.com*\n🎥 Watch the latest product videos. 💥\n Explore amazing combo offers. \n👉 Click now! : https://linktr.ee/chenarabia`,
         }));
     }
     res.status(200).json({ message: "sent!", status: true });
