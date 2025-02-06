@@ -22,22 +22,22 @@ router.post("/order-payment", async (req, res) => {
     }
     res.status(200).json({ message: "sent!", status: true });
 });
-router.post("/order-create", async (req, res) => {
-    const client = __1.sessions.get("971567326895");
-    const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body["billing_address"]["phone"].replace(/\D/g, "")));
-    if (result) {
-        await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
-            text: `Hi ${req.body["billing_address"]["first_name"]}.Thank you for your order! 🎉\n\n Here are your order details:\n order number:${req.body["order_number"]}\n Track your order: ${req.body["order_status_url"]}\n\nFor any inquiries, WhatsApp us at +971563680897.\nThank you for shopping with us 😊:\n *https://chenarabia.com*`,
-        }));
-    }
-    res.status(200).json({ message: "sent!", status: true });
-});
 router.post("/customer-update", async (req, res) => {
     const client = __1.sessions.get("971567326895");
     const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body["default_address"]["phone"].replace(/\D/g, "")));
     if (result) {
         await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
             text: `Hi ${req.body["default_address"]["first_name"]}.Thank you for signing up with us on *chenarabia.com*!\n We're excited to have you on board. 🛒\nFor any inquiries, WhatsApp us at +971563680897.\n We're always happy to help! 💬\n Stay tuned for exclusive offers and discounts coming soon to your inbox! ✨\n Best Regards\n\n Chenarabia Teams`,
+        }));
+    }
+    res.status(200).json({ message: "sent!", status: true });
+});
+router.post("/order-create", async (req, res) => {
+    const client = __1.sessions.get("971567326895");
+    const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body["billing_address"]["phone"].replace(/\D/g, "")));
+    if (result) {
+        await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
+            text: `Hi ${req.body["billing_address"]["first_name"]}.Thank you for your order! 🎉\n\n Here are your order details:\n order number:${req.body["order_number"]}\n Track your order: ${req.body["order_status_url"]}\n\nFor any inquiries, WhatsApp us at +971563680897.\nThank you for shopping with us 😊:\n *https://chenarabia.com*`,
         }));
     }
     res.status(200).json({ message: "sent!", status: true });
