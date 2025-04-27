@@ -1,6 +1,5 @@
-import type { proto, MessageUpsertType } from "@whiskeysockets/baileys";
+import type { proto, MessageUpsertType } from "baileys";
 export interface IUpsert {
   messages: proto.IWebMessageInfo[];
   type: MessageUpsertType;
 }
-

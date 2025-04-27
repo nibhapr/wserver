@@ -3,7 +3,7 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
   useMultiFileAuthState,
-} from "@whiskeysockets/baileys";
+} from "baileys";
 import { Boom } from "@hapi/boom";
 import NodeCache from "node-cache";
 import MAIN_LOGGER from "./utils/logger";
@@ -107,7 +107,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
             where: { id: device?.id },
             data: { status: "Connected" },
           });
-       
+
           if (connectedNumber != number.toString()) {
             io.emit("number-mismatch");
             await sock.logout();
@@ -119,7 +119,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
                 name: connectedDevice?.name,
                 id: connectedNumber,
               },
-              ppUrl:  await sock.profilePictureUrl(sock.user?.id ?? "")
+              ppUrl: await sock.profilePictureUrl(sock.user?.id ?? ""),
             });
           }
         }

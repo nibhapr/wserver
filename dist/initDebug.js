@@ -10,7 +10,10 @@ const initDebug = async (upsert, number) => {
     const client = _1.sessions.get(number);
     if (client) {
         upsert.messages.map(async (message) => {
-            const [result] = await client.onWhatsApp(message.key.remoteJid);
+            const resultArray = await client.onWhatsApp(message.key.remoteJid);
+            const result = Array.isArray(resultArray) && resultArray.length > 0
+                ? resultArray[0]
+                : { jid: "", exists: false };
             number = result.jid;
             logger_1.default.info(number);
         });

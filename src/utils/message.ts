@@ -1,5 +1,5 @@
 import type { autoreplies_type, blasts_type } from "@prisma/client";
-import type { proto, WASocket } from "@whiskeysockets/baileys";
+import type { proto, WASocket } from "baileys";
 import mime from "mime";
 import { logToFile } from "./logger";
 
@@ -23,7 +23,11 @@ export const sendBlast = async (
     if (/[^0-9]/g.test(receiver)) {
       number = receiver;
     } else {
-      const [result] = await client.onWhatsApp(receiver);
+      const resultArray = await client.onWhatsApp(receiver);
+      const result =
+        Array.isArray(resultArray) && resultArray.length > 0
+          ? resultArray[0]
+          : { jid: "", exists: false };
       number = result.jid;
     }
 

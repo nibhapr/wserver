@@ -8,17 +8,43 @@ import {
 } from "../types/requestTypes";
 import mime from "mime";
 import { sendEachBlast } from "../services/message-service";
+import { sendTextSchema } from "../schema/messageSchema";
 
 export const sendText: RequestHandler = async (
   req: Request<object, object, ISentText>,
   res: Response<IResponse>
 ) => {
-  const client = sessions.get(req.body.token);
-  const result = await client?.onWhatsApp(req.body.number);
-  await client?.sendMessage(result ? result[0].jid : "", {
-    text: req.body.text ?? "",
-  });
-  res.status(200).json({ message: "sent!", status: true });
+  const validated = await sendTextSchema.safeParse(req.body);
+  if (!validated.success) {
+    res.status(400).json({
+      message: "Invalid request",
+      status: false,
+      append: validated.error.format(),
+    });
+    return;
+  }
+  try {
+    const client = sessions.get(req.body.token);
+    const result = await client?.onWhatsApp(req.body.number);
+    const response = await client?.sendMessage(result ? result[0].jid : "", {
+      text: req.body.text ?? "",
+    });
+    console.log(client, result);
+    if (response) {
+      res.status(200).json({ message: "sent!", status: true });
+    } else {
+      res.status(500).json({
+        message: "Failed to send message",
+        status: false,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Failed to send message",
+      status: false,
+    });
+  }
 };
 
 export const sendMedia: RequestHandler = async (
@@ -36,7 +62,7 @@ export const sendMedia: RequestHandler = async (
   } else {
     await client?.sendMessage(result ? result[0].jid : "", {
       image: { url: req.body.url ?? "" },
-      mimetype: mime.getType(req.body.url ?? "") ?? "",
+      mimetype: mime.getType(req.body.url ?? "") ?? "", //mime.getType(req.body.url ?? "") ?? ""
       caption: req.body.caption,
     });
   }

@@ -7,33 +7,59 @@ exports.sendBulk = exports.sendMedia = exports.sendText = void 0;
 const __1 = require("..");
 const mime_1 = __importDefault(require("mime"));
 const message_service_1 = require("../services/message-service");
+const messageSchema_1 = require("../schema/messageSchema");
 const sendText = async (req, res) => {
-    var _a;
-    const client = __1.sessions.get(req.body.token);
-    const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body.number));
-    await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
-        text: (_a = req.body.text) !== null && _a !== void 0 ? _a : "",
-    }));
-    res.status(200).json({ message: "sent!", status: true });
+    const validated = await messageSchema_1.sendTextSchema.safeParse(req.body);
+    if (!validated.success) {
+        res.status(400).json({
+            message: "Invalid request",
+            status: false,
+            append: validated.error.format(),
+        });
+        return;
+    }
+    try {
+        const client = __1.sessions.get(req.body.token);
+        const result = await client?.onWhatsApp(req.body.number);
+        const response = await client?.sendMessage(result ? result[0].jid : "", {
+            text: req.body.text ?? "",
+        });
+        console.log(client, result);
+        if (response) {
+            res.status(200).json({ message: "sent!", status: true });
+        }
+        else {
+            res.status(500).json({
+                message: "Failed to send message",
+                status: false,
+            });
+        }
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Failed to send message",
+            status: false,
+        });
+    }
 };
 exports.sendText = sendText;
 const sendMedia = async (req, res) => {
-    var _a, _b, _c, _d, _e, _f;
     const client = __1.sessions.get(req.body.token);
-    const result = await (client === null || client === void 0 ? void 0 : client.onWhatsApp(req.body.number));
+    const result = await client?.onWhatsApp(req.body.number);
     if (req.body.type === "pdf") {
-        await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
-            document: { url: (_a = req.body.url) !== null && _a !== void 0 ? _a : "" },
-            mimetype: (_c = mime_1.default.getType((_b = req.body.url) !== null && _b !== void 0 ? _b : "")) !== null && _c !== void 0 ? _c : "",
+        await client?.sendMessage(result ? result[0].jid : "", {
+            document: { url: req.body.url ?? "" },
+            mimetype: mime_1.default.getType(req.body.url ?? "") ?? "",
             caption: req.body.caption,
-        }));
+        });
     }
     else {
-        await (client === null || client === void 0 ? void 0 : client.sendMessage(result ? result[0].jid : "", {
-            image: { url: (_d = req.body.url) !== null && _d !== void 0 ? _d : "" },
-            mimetype: (_f = mime_1.default.getType((_e = req.body.url) !== null && _e !== void 0 ? _e : "")) !== null && _f !== void 0 ? _f : "",
+        await client?.sendMessage(result ? result[0].jid : "", {
+            image: { url: req.body.url ?? "" },
+            mimetype: mime_1.default.getType(req.body.url ?? "") ?? "", //mime.getType(req.body.url ?? "") ?? ""
             caption: req.body.caption,
-        }));
+        });
     }
     res.status(200).json({ message: "sent!", status: true });
 };
