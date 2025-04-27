@@ -57,7 +57,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
     // can provide additional config here
     version,
     logger,
-    printQRInTerminal: true,
+    // printQRInTerminal: true,
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger),
@@ -183,7 +183,7 @@ export const initializeWhatsapp = async (number: string) => {
     // can provide additional config here
     logger,
     version,
-    printQRInTerminal: true,
+    // printQRInTerminal: true,
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger),

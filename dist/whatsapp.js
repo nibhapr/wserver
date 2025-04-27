@@ -147,7 +147,7 @@ async function connectToWhatsApp(number, io) {
             }
             if (connection === "close") {
                 // reconnect if not logged out
-                if (lastDisconnect?.error?.output.statusCode === 515) {
+                if (lastDisconnect?.error?.output?.statusCode === 515) {
                     connectToWhatsApp(`${number}`, io);
                 }
                 if (lastDisconnect?.error?.output?.statusCode !==
@@ -239,7 +239,7 @@ const initializeWhatsapp = async (number) => {
             }
             if (connection === "close") {
                 // reconnect if not logged out
-                if (lastDisconnect?.error?.output.statusCode === 515) {
+                if (lastDisconnect?.error?.output?.statusCode === 515) {
                     (0, exports.initializeWhatsapp)(number);
                 }
                 if (lastDisconnect?.error?.output?.statusCode !==
