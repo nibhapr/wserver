@@ -125,7 +125,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
         }
         if (connection === "close") {
           // reconnect if not logged out
-          if ((lastDisconnect?.error as Boom)?.output.statusCode === 515) {
+          if ((lastDisconnect?.error as Boom)?.output?.statusCode === 515) {
             connectToWhatsApp(`${number}`, io);
           }
           if (
