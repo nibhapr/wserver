@@ -228,7 +228,7 @@ export const initializeWhatsapp = async (number: string) => {
         }
         if (connection === "close") {
           // reconnect if not logged out
-          if ((lastDisconnect?.error as Boom)?.output.statusCode === 515) {
+          if ((lastDisconnect?.error as Boom)?.output?.statusCode === 515) {
             initializeWhatsapp(number);
           }
           if (
