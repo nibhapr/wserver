@@ -8,9 +8,7 @@ export const sendEachBlast = async (
   delay: number,
   client: WASocket
 ) => {
-  for (const [idx, blast] of blasts.entries()) {
-    await new Promise((resolve) => setTimeout(resolve, delay * 1000 * idx));
-
+  for (const blast of blasts) {
     const result = await sendBlast(
       client,
       blast.receiver,
@@ -35,5 +33,6 @@ export const sendEachBlast = async (
         },
       });
     }
+    await new Promise((resolve) => setTimeout(resolve, delay * 1000));
   }
 };

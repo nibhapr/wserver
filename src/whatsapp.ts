@@ -13,7 +13,7 @@ import { toDataURL } from "qrcode";
 import { prisma } from "./utils/db";
 import { sessions } from ".";
 import initAutoreply from "./autoreply";
-import initDebug from "./initDebug";
+import qrcode from "qrcode-terminal";
 
 const logger = MAIN_LOGGER.child({});
 logger.level = "info";
@@ -57,7 +57,6 @@ export async function connectToWhatsApp(number: string, io: Socket) {
     // can provide additional config here
     version,
     logger,
-    // printQRInTerminal: true,
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger),
@@ -67,6 +66,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
   });
 
   // store?.bind(sock.ev);
+
   sock.ev.process(
     // events is a map for event name => event data
     async (events) => {
@@ -183,7 +183,7 @@ export const initializeWhatsapp = async (number: string) => {
     // can provide additional config here
     logger,
     version,
-    // printQRInTerminal: true,
+    printQRInTerminal: true,
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger),
@@ -208,6 +208,9 @@ export const initializeWhatsapp = async (number: string) => {
         const { connection, lastDisconnect, qr, legacy } = update;
         if (qr?.length) {
           logger.warn("QRCODE");
+          qrcode.generate(qr, { small: true }, (qrcodedata) => {
+            console.log(qrcodedata);
+          });
           if (
             (device?.status === "Connected" &&
               update.connection === "connecting") ||
