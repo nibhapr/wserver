@@ -174,7 +174,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
   sessions.set(number, sock);
 }
 
-export const initializeWhatsapp = async (number: string) => {
+export const initializeWhatsapp = async (number: string, retries = 2) => {
   logger.info("INTITIALIZE WHATSAPP");
   const { state, saveCreds } = await useMultiFileAuthState(`${number}`);
   const { version, isLatest } = await fetchLatestBaileysVersion();
@@ -208,9 +208,9 @@ export const initializeWhatsapp = async (number: string) => {
         const { connection, lastDisconnect, qr, legacy } = update;
         if (qr?.length) {
           logger.warn("QRCODE");
-          qrcode.generate(qr, { small: true }, (qrcodedata) => {
-            console.log(qrcodedata);
-          });
+          // qrcode.generate(qr, { small: true }, (qrcodedata) => {
+          //   console.log(qrcodedata);
+          // });
           if (
             (device?.status === "Connected" &&
               update.connection === "connecting") ||
@@ -232,7 +232,11 @@ export const initializeWhatsapp = async (number: string) => {
         if (connection === "close") {
           // reconnect if not logged out
           if ((lastDisconnect?.error as Boom)?.output?.statusCode === 515) {
-            initializeWhatsapp(number);
+            console.log("YESSSSSSSSSSSSSSSSSSSSSSSSSS");
+            if (retries > 0) {
+              console.log(`Retrying connection... Attempts left: ${retries}`);
+              initializeWhatsapp(number, retries - 1);
+            }
           }
           if (
             (lastDisconnect?.error as Boom)?.output?.statusCode !==
