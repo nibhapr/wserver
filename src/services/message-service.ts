@@ -1,5 +1,5 @@
 import { WASocket } from "baileys";
-import { prisma } from "../utils/db";
+import prisma from "../utils/db";
 import { blasts } from "@prisma/client";
 import { sendBlast } from "../utils/message";
 

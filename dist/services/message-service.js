@@ -1,14 +1,16 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEachBlast = void 0;
-const db_1 = require("../utils/db");
+const db_1 = __importDefault(require("../utils/db"));
 const message_1 = require("../utils/message");
 const sendEachBlast = async (blasts, delay, client) => {
-    for (const [idx, blast] of blasts.entries()) {
-        await new Promise((resolve) => setTimeout(resolve, delay * 1000 * idx));
+    for (const blast of blasts) {
         const result = await (0, message_1.sendBlast)(client, blast.receiver, blast.message, blast.type);
         if (result) {
-            await db_1.prisma.blasts.update({
+            await db_1.default.blasts.update({
                 where: { id: blast.id },
                 data: {
                     status: "success",
@@ -17,7 +19,7 @@ const sendEachBlast = async (blasts, delay, client) => {
             });
         }
         else {
-            await db_1.prisma.blasts.update({
+            await db_1.default.blasts.update({
                 where: { id: blast.id },
                 data: {
                     status: "failed",
@@ -25,6 +27,7 @@ const sendEachBlast = async (blasts, delay, client) => {
                 },
             });
         }
+        await new Promise((resolve) => setTimeout(resolve, delay * 1000));
     }
 };
 exports.sendEachBlast = sendEachBlast;

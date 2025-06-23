@@ -1,10 +1,18 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.initTest = void 0;
+const axios_1 = __importDefault(require("axios"));
 const _1 = require(".");
-const db_1 = require("./utils/db");
+const db_1 = __importDefault(require("./utils/db"));
+const logger_1 = __importDefault(require("./utils/logger"));
 const message_1 = require("./utils/message");
+const baileys_1 = require("baileys");
+const form_data_1 = __importDefault(require("form-data"));
 const initAutoreply = async (upsert, number) => {
-    const autoreplies = await db_1.prisma.autoreplies.findMany({
+    const autoreplies = await db_1.default.autoreplies.findMany({
         where: { device: number },
     });
     const client = _1.sessions.get(number);
@@ -20,4 +28,41 @@ const initAutoreply = async (upsert, number) => {
         });
     }
 };
+const initTest = async (upsert, number) => {
+    const client = _1.sessions.get(number);
+    if (!client) {
+        console.error(`No client found for number: ${number}`);
+        return;
+    }
+    upsert.messages.map(async (message) => {
+        if (message.message?.imageMessage?.url?.length && !message.key.fromMe) {
+            console.log("Image message received:", message.message.imageMessage.url);
+            try {
+                const buffer = await (0, baileys_1.downloadMediaMessage)(message, "buffer", {}, { logger: logger_1.default, reuploadRequest: client.updateMediaMessage });
+                const form = new form_data_1.default();
+                form.append("file", buffer, {
+                    filename: "image.jpg",
+                    contentType: "image/jpeg",
+                });
+                // const res = await fetch("https://gm.milanpramod.online/predict", {
+                //   method: "POST",
+                //   headers: form.getHeaders(),
+                //   body: form,
+                // });
+                const res = await axios_1.default.post("https://gm.milanpramod.online/predict", form, {
+                    headers: form.getHeaders(),
+                });
+                const data = await res.data;
+                console.log("Prediction result:", data.result, data.confidence);
+                if (data?.result) {
+                    (0, message_1.sendBlast)(client, message.key.remoteJid ?? "", "Good Morning", "text");
+                }
+            }
+            catch (error) {
+                console.error("Error fetching prediction:", error);
+            }
+        }
+    });
+};
+exports.initTest = initTest;
 exports.default = initAutoreply;

@@ -20,14 +20,15 @@ const sendBlast = async (client, receiver, message, type) => {
                 : { jid: "", exists: false };
             number = result.jid;
         }
-        const msg = JSON.parse(message);
+        // const msg: IMessage = JSON.parse(message);
         let res;
         if (type === "text") {
             res = await client?.sendMessage(number, {
-                text: msg.text ?? "",
+                text: message ?? "",
             });
         }
         else if (type === "image") {
+            const msg = JSON.parse(message);
             res = await client.sendMessage(number, {
                 caption: msg.caption ?? "",
                 image: { url: msg.image?.url ?? "" },
