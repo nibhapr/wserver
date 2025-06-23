@@ -23,6 +23,9 @@ importers:
       '@types/qrcode':
         specifier: ^1.5.5
         version: 1.5.5
+      axios:
+        specifier: ^1.10.0
+        version: 1.10.0
       baileys:
         specifier: ^6.7.17
         version: 6.7.17(audio-decode@2.2.2)(eslint@9.25.1)(typescript@5.8.3)
@@ -38,6 +41,9 @@ importers:
       express:
         specifier: ^5.1.0
         version: 5.1.0
+      form-data:
+        specifier: ^4.0.3
+        version: 4.0.3
       mime:
         specifier: 3.0.0
         version: 3.0.0
@@ -66,6 +72,9 @@ importers:
       '@types/express':
         specifier: ^5.0.1
         version: 5.0.1
+      '@types/form-data':
+        specifier: ^2.5.2
+        version: 2.5.2
       '@types/mime':
         specifier: ^3.0.4
         version: 3.0.4
@@ -474,6 +483,10 @@ packages:
   '@types/express@5.0.1':
     resolution: {integrity: sha512-UZUw8vjpWFXuDnjFTh7/5c2TWDlQqeXHi6hcN7F2XSVT5P+WmUnnbFS3KA6Jnc6IsEqI2qCVu2bK0R0J4A8ZQQ==}
 
+  '@types/form-data@2.5.2':
+    resolution: {integrity: sha512-tfmcyHn1Pp9YHAO5r40+UuZUPAZbUEgqTel3EuEKpmF9hPkXgR4l41853raliXnb4gwyPNoQOfvgGGlHN5WSog==}
+    deprecated: This is a stub types definition. form-data provides its own type definitions, so you do not need this installed.
+
   '@types/http-errors@2.0.4':
     resolution: {integrity: sha512-D0CFMMtydbJAegzOyHjtiKPLlvnm3iTZyZRSZoLq2mRhDdmLfIWOCYPfQJ4cu2erKghU++QvjcUjp/5h7hESpA==}
 
@@ -632,8 +645,8 @@ packages:
       eslint: '*'
       typescript: '>=4'
 
-  '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/d13b6622a208d3037a98b6f447bbde70261c39a9':
-    resolution: {tarball: https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/d13b6622a208d3037a98b6f447bbde70261c39a9}
+  '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/4d08331a833727c338c1a90041d17b870210dfae':
+    resolution: {tarball: https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/4d08331a833727c338c1a90041d17b870210dfae}
     version: 2.0.1
 
   abort-controller@3.0.0:
@@ -711,8 +724,8 @@ packages:
     resolution: {integrity: sha512-En9AY6EG1qYqEy5L/quryzbA4akBpJrnBZNxeKTqGHC2xT9Qc4aZ8b7CcbOMFTTc/MGdoNyp+SN4zInZNKxMYA==}
     engines: {node: '>=14'}
 
-  axios@1.9.0:
-    resolution: {integrity: sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg==}
+  axios@1.10.0:
+    resolution: {integrity: sha512-/1xYAC4MP/HEG+3duIhFr4ZQXR4sQXOIe+o6sdqzeykGLx6Upp/1p8MHqhINOvGeP7xyNHe7tsiJByc4SSVUxw==}
 
   baileys@6.7.17:
     resolution: {integrity: sha512-p/swKm/7ecHcDhKHzAZzxlaGEkjYqxUwAaNzDjhhmCuf7hmR2rIbRzTGIMKJRbFTl/QKnkRLXAVNjYZmXYeeAg==}
@@ -1112,8 +1125,8 @@ packages:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
     engines: {node: '>=14'}
 
-  form-data@4.0.2:
-    resolution: {integrity: sha512-hGfm/slu0ZabnNt4oaRZ6uREyfCj6P4fT/n6A1rGV+Z0VdGXjfOhVUpkn6qVQONHGIFwmveGXyDs75+nr6FM8w==}
+  form-data@4.0.3:
+    resolution: {integrity: sha512-qsITQPfmvMOSAdeyZ+12I1c+CKSstAFAwu+97zrnWAbIr5u8wfsExUzCesVLC8NgHuRUqNN4Zy6UPWUTRGslcA==}
     engines: {node: '>= 6'}
 
   forwarded@0.2.0:
@@ -2292,6 +2305,10 @@ snapshots:
       '@types/express-serve-static-core': 5.0.6
       '@types/serve-static': 1.15.7
 
+  '@types/form-data@2.5.2':
+    dependencies:
+      form-data: 4.0.3
+
   '@types/http-errors@2.0.4': {}
 
   '@types/json-schema@7.0.15': {}
@@ -2520,7 +2537,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/d13b6622a208d3037a98b6f447bbde70261c39a9':
+  '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/4d08331a833727c338c1a90041d17b870210dfae':
     dependencies:
       curve25519-js: 0.0.4
       protobufjs: 6.8.8
@@ -2601,10 +2618,10 @@ snapshots:
   audio-type@2.2.1:
     optional: true
 
-  axios@1.9.0:
+  axios@1.10.0:
     dependencies:
       follow-redirects: 1.15.9
-      form-data: 4.0.2
+      form-data: 4.0.3
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
@@ -2615,8 +2632,8 @@ snapshots:
       '@hapi/boom': 9.1.4
       '@whiskeysockets/eslint-config': https://codeload.github.com/whiskeysockets/eslint-config/tar.gz/f264cd06d24a43f76e4ad2d81528f8485a1e7efe(eslint@9.25.1)(typescript@5.8.3)
       async-mutex: 0.5.0
-      axios: 1.9.0
-      libsignal: '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/d13b6622a208d3037a98b6f447bbde70261c39a9'
+      axios: 1.10.0
+      libsignal: '@whiskeysockets/libsignal-node@https://codeload.github.com/WhiskeySockets/libsignal-node/tar.gz/4d08331a833727c338c1a90041d17b870210dfae'
       lodash: 4.17.21
       music-metadata: 7.14.0
       pino: 9.6.0
@@ -3072,11 +3089,12 @@ snapshots:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
 
-  form-data@4.0.2:
+  form-data@4.0.3:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       es-set-tostringtag: 2.1.0
+      hasown: 2.0.2
       mime-types: 2.1.35
 
   forwarded@0.2.0: {}

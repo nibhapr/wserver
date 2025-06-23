@@ -1,4 +1,4 @@
-import { prisma } from "./utils/db";
+import prisma from "./utils/db";
 import log from "./utils/logger";
 import { initializeWhatsapp } from "./whatsapp";
 
@@ -19,5 +19,7 @@ const init = async () => {
     initializeWhatsapp(device.body);
   });
 };
+
+
 
 export default initSessions;

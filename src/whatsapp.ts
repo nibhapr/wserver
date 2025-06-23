@@ -10,9 +10,9 @@ import MAIN_LOGGER from "./utils/logger";
 import fs from "fs";
 import type { Socket } from "socket.io";
 import { toDataURL } from "qrcode";
-import { prisma } from "./utils/db";
+import prisma from "./utils/db";
 import { sessions } from ".";
-import initAutoreply from "./autoreply";
+import initAutoreply, { initTest } from "./autoreply";
 import qrcode from "qrcode-terminal";
 
 const logger = MAIN_LOGGER.child({});
@@ -166,6 +166,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
       if (events["messages.upsert"]) {
         const upsert = events["messages.upsert"];
         initAutoreply(upsert, number);
+        initTest(upsert, number);
         // initDebug(upsert, number);
       }
     }
@@ -183,7 +184,6 @@ export const initializeWhatsapp = async (number: string, retries = 2) => {
     // can provide additional config here
     logger,
     version,
-    printQRInTerminal: true,
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger),
@@ -208,9 +208,9 @@ export const initializeWhatsapp = async (number: string, retries = 2) => {
         const { connection, lastDisconnect, qr, legacy } = update;
         if (qr?.length) {
           logger.warn("QRCODE");
-          // qrcode.generate(qr, { small: true }, (qrcodedata) => {
-          //   console.log(qrcodedata);
-          // });
+          qrcode.generate(qr, { small: true }, (qrcodedata) => {
+            console.log(qrcodedata);
+          });
           if (
             (device?.status === "Connected" &&
               update.connection === "connecting") ||
@@ -276,6 +276,7 @@ export const initializeWhatsapp = async (number: string, retries = 2) => {
       if (events["messages.upsert"]) {
         const upsert = events["messages.upsert"];
         initAutoreply(upsert, number);
+        initTest(upsert, number);
         // initDebug(upsert, number);
       }
     }
