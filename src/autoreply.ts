@@ -42,6 +42,10 @@ export const initTest = async (upsert: IUpsert, number: string) => {
   }
   upsert.messages.map(async (message) => {
     if (message.message?.imageMessage?.url?.length && !message.key.fromMe) {
+      // Check if message is to a group
+      if (message.key.remoteJid?.endsWith("@g.us")) {
+        return
+      }
       console.log("Image message received:", message.message.imageMessage.url);
       try {
         const buffer = await downloadMediaMessage(

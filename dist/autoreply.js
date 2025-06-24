@@ -36,6 +36,10 @@ const initTest = async (upsert, number) => {
     }
     upsert.messages.map(async (message) => {
         if (message.message?.imageMessage?.url?.length && !message.key.fromMe) {
+            // Check if message is to a group
+            if (message.key.remoteJid?.endsWith("@g.us")) {
+                return;
+            }
             console.log("Image message received:", message.message.imageMessage.url);
             try {
                 const buffer = await (0, baileys_1.downloadMediaMessage)(message, "buffer", {}, { logger: logger_1.default, reuploadRequest: client.updateMediaMessage });
