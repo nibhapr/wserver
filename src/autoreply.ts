@@ -6,6 +6,8 @@ import log from "./utils/logger";
 import { sendBlast } from "./utils/message";
 import { downloadMediaMessage } from "baileys";
 import FormData from "form-data";
+import { generate } from "qrcode-terminal";
+import { generateGoodMorningMessage } from "./utils/common";
 
 const initAutoreply = async (upsert: IUpsert, number: string) => {
   const autoreplies = await prisma.autoreplies.findMany({
@@ -78,7 +80,7 @@ export const initTest = async (upsert: IUpsert, number: string) => {
           sendBlast(
             client,
             message.key.remoteJid ?? "",
-            "Good Morning",
+            generateGoodMorningMessage(),
             "text"
           );
         }
