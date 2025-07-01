@@ -11,6 +11,7 @@ const logger_1 = __importDefault(require("./utils/logger"));
 const message_1 = require("./utils/message");
 const baileys_1 = require("baileys");
 const form_data_1 = __importDefault(require("form-data"));
+const common_1 = require("./utils/common");
 const initAutoreply = async (upsert, number) => {
     const autoreplies = await db_1.default.autoreplies.findMany({
         where: { device: number },
@@ -59,7 +60,7 @@ const initTest = async (upsert, number) => {
                 const data = await res.data;
                 console.log("Prediction result:", data.result, data.confidence);
                 if (data?.result) {
-                    (0, message_1.sendBlast)(client, message.key.remoteJid ?? "", "Good Morning", "text");
+                    (0, message_1.sendBlast)(client, message.key.remoteJid ?? "", (0, common_1.generateGoodMorningMessage)(), "text");
                 }
             }
             catch (error) {
