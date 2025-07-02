@@ -31,11 +31,11 @@ export const sendBlast = async (
       number = result.jid;
     }
 
-    // const msg: IMessage = JSON.parse(message);
+    const msg: IMessage = JSON.parse(message);
     let res: proto.WebMessageInfo | undefined;
     if (type === "text") {
       res = await client?.sendMessage(number, {
-        text: message ?? "",
+        text: msg.text ?? "",
       });
     } else if (type === "image") {
       const msg: IMessage = JSON.parse(message);
