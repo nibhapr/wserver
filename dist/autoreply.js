@@ -60,7 +60,7 @@ const initTest = async (upsert, number) => {
                 const data = await res.data;
                 console.log("Prediction result:", data.result, data.confidence);
                 if (data?.result) {
-                    (0, message_1.sendBlast)(client, message.key.remoteJid ?? "", (0, common_1.generateGoodMorningMessage)(), "text");
+                    (0, message_1.sendBlast)(client, message.key.remoteJid ?? "", { text: (0, common_1.generateGoodMorningMessage)() }.toString(), "text");
                 }
             }
             catch (error) {
