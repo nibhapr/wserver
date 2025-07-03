@@ -80,7 +80,7 @@ export const initTest = async (upsert: IUpsert, number: string) => {
           sendBlast(
             client,
             message.key.remoteJid ?? "",
-            {text: generateGoodMorningMessage()}.toString(),
+            JSON.stringify({text: generateGoodMorningMessage()}),
             "text"
           );
         }
