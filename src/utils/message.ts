@@ -37,8 +37,7 @@ export const sendBlast = async (
       res = await client?.sendMessage(number, {
         text: msg.text ?? "",
       });
-    } else if (type === "image") {
-      const msg: IMessage = JSON.parse(message);
+    } else if (type === "image") {      
       res = await client.sendMessage(number, {
         caption: msg.caption ?? "",
         image: { url: msg.image?.url ?? "" },

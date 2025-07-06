@@ -28,7 +28,6 @@ const sendBlast = async (client, receiver, message, type) => {
             });
         }
         else if (type === "image") {
-            const msg = JSON.parse(message);
             res = await client.sendMessage(number, {
                 caption: msg.caption ?? "",
                 image: { url: msg.image?.url ?? "" },
