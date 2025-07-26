@@ -4,7 +4,7 @@ exports.sendEachBlast = void 0;
 const redis_1 = require("../utils/redis");
 const sendEachBlast = async (blasts, delay, client) => {
     for (const blast of blasts) {
-        await redis_1.blastQueue.add('send-blast', { blastId: blast.id, client: client });
+        await redis_1.blastQueue.add('send-blast', { blastId: blast.id, client: blast.sender });
         // const result = await sendBlast(
         //   client,
         //   blast.receiver,

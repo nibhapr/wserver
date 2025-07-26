@@ -9,7 +9,7 @@ export const sendEachBlast = async (
   client: WASocket
 ) => {
   for (const blast of blasts) {
-    await blastQueue.add('send-blast', { blastId: blast.id, client: client })
+    await blastQueue.add('send-blast', { blastId: blast.id, client: blast.sender })
     // const result = await sendBlast(
     //   client,
     //   blast.receiver,
