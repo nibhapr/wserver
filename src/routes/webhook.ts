@@ -1,6 +1,6 @@
 import { Request, Router } from "express";
 // import { getWebhookUser } from "../services/webhook-service";
-import { sessions } from "..";
+import clients from "../utils/sessions";
 const router = Router();
 router.post(
   "/order-payment",
@@ -11,7 +11,7 @@ router.post(
     //   return;
     // }
     console.log(req.body["billing_address"]["phone"]);
-    const client = sessions.get("917012749946");
+    const client = clients.get("917012749946");
     const result = await client?.onWhatsApp(
       req.body["billing_address"]["phone"].replace(/\D/g, "")
     );
@@ -26,7 +26,7 @@ router.post(
   }
 );
 router.post("/customer-update", async (req, res) => {
-  const client = sessions.get("971567326895");
+  const client = clients.get("971567326895");
   const result = await client?.onWhatsApp(
     req.body["default_address"]["phone"].replace(/\D/g, "")
   );
@@ -38,7 +38,7 @@ router.post("/customer-update", async (req, res) => {
   res.status(200).json({ message: "sent!", status: true });
 });
 router.post("/order-create", async (req, res) => {
-  const client = sessions.get("971567326895");
+  const client = clients.get("971567326895");
   const result = await client?.onWhatsApp(
     req.body["billing_address"]["phone"].replace(/\D/g, "")
   );
@@ -53,7 +53,7 @@ router.post("/order-create", async (req, res) => {
 
 
 // router.post("/order-update", async (req, res) => {
-//   const client = sessions.get("971567326895");
+//   const client = clients.get("971567326895");
 //   const result = await client?.onWhatsApp(
 //     req.body["billing_address"]["phone"].replace(/\D/g, "")
 //   );
@@ -65,7 +65,7 @@ router.post("/order-create", async (req, res) => {
 //   res.status(200).json({ message: "sent!", status: true });
 // });
 router.post("/fullfilment_creation", async (req, res) => {
-  const client = sessions.get("971567326895");
+  const client = clients.get("971567326895");
   const result = await client?.onWhatsApp(
     req.body["destination"]["phone"].replace(/\D/g, "")
   );

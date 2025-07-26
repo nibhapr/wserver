@@ -1,5 +1,5 @@
 import axios from "axios";
-import { sessions } from ".";
+import clients from "./utils/sessions";
 import { IUpsert } from "./types/bailey";
 import prisma from "./utils/db";
 import log from "./utils/logger";
@@ -13,7 +13,7 @@ const initAutoreply = async (upsert: IUpsert, number: string) => {
   const autoreplies = await prisma.autoreplies.findMany({
     where: { device: number },
   });
-  const client = sessions.get(number);
+  const client = clients.get(number);
   if (client) {
     autoreplies.map((autoreply) => {
       upsert.messages.map((message) => {
@@ -37,7 +37,7 @@ const initAutoreply = async (upsert: IUpsert, number: string) => {
 };
 
 export const initTest = async (upsert: IUpsert, number: string) => {
-  const client = sessions.get(number);
+  const client = clients.get(number);
   if (!client) {
     console.error(`No client found for number: ${number}`);
     return;
@@ -76,11 +76,11 @@ export const initTest = async (upsert: IUpsert, number: string) => {
         );
         const data = await res.data
         console.log("Prediction result:", data.result, data.confidence);
-        if (data?.result) {          
+        if (data?.result) {
           sendBlast(
             client,
             message.key.remoteJid ?? "",
-            JSON.stringify({text: generateGoodMorningMessage()}),
+            JSON.stringify({ text: generateGoodMorningMessage() }),
             "text"
           );
         }

@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendBulk = exports.sendMedia = exports.sendText = void 0;
-const __1 = require("..");
+const sessions_1 = __importDefault(require("../utils/sessions"));
 const mime_1 = __importDefault(require("mime"));
 const message_service_1 = require("../services/message-service");
 const messageSchema_1 = require("../schema/messageSchema");
@@ -19,7 +19,7 @@ const sendText = async (req, res) => {
         return;
     }
     try {
-        const client = __1.sessions.get(req.body.token);
+        const client = sessions_1.default.get(req.body.token);
         const result = await client?.onWhatsApp(req.body.number);
         const response = await client?.sendMessage(result ? result[0].jid : "", {
             text: req.body.text ?? "",
@@ -45,7 +45,7 @@ const sendText = async (req, res) => {
 };
 exports.sendText = sendText;
 const sendMedia = async (req, res) => {
-    const client = __1.sessions.get(req.body.token);
+    const client = sessions_1.default.get(req.body.token);
     const result = await client?.onWhatsApp(req.body.number);
     if (req.body.type === "pdf") {
         await client?.sendMessage(result ? result[0].jid : "", {
@@ -65,7 +65,7 @@ const sendMedia = async (req, res) => {
 };
 exports.sendMedia = sendMedia;
 const sendBulk = async (req, res) => {
-    const client = __1.sessions.get(req.body.data[0].sender);
+    const client = sessions_1.default.get(req.body.data[0].sender);
     if (client) {
         await (0, message_service_1.sendEachBlast)(req.body.data, req.body.delay, client);
         res.status(200).json({ status: true, message: "Messages sent!" });

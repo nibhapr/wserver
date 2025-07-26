@@ -1,5 +1,5 @@
 import { Request, RequestHandler, Response } from "express";
-import { sessions } from "..";
+import clients from "../utils/sessions";
 import {
   IResponse,
   ISendBulk,
@@ -24,7 +24,7 @@ export const sendText: RequestHandler = async (
     return;
   }
   try {
-    const client = sessions.get(req.body.token);
+    const client = clients.get(req.body.token);
     const result = await client?.onWhatsApp(req.body.number);
     const response = await client?.sendMessage(result ? result[0].jid : "", {
       text: req.body.text ?? "",
@@ -51,7 +51,7 @@ export const sendMedia: RequestHandler = async (
   req: Request<object, object, ISentMedia>,
   res: Response<IResponse>
 ) => {
-  const client = sessions.get(req.body.token);
+  const client = clients.get(req.body.token);
   const result = await client?.onWhatsApp(req.body.number);
   if (req.body.type === "pdf") {
     await client?.sendMessage(result ? result[0].jid : "", {
@@ -73,7 +73,7 @@ export const sendBulk: RequestHandler = async (
   req: Request<object, object, ISendBulk>,
   res: Response<IResponse>
 ) => {
-  const client = sessions.get(req.body.data[0].sender);
+  const client = clients.get(req.body.data[0].sender);
   if (client) {
     await sendEachBlast(req.body.data, req.body.delay, client);
     res.status(200).json({ status: true, message: "Messages sent!" });

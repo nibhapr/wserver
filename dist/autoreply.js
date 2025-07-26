@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initTest = void 0;
 const axios_1 = __importDefault(require("axios"));
-const _1 = require(".");
+const sessions_1 = __importDefault(require("./utils/sessions"));
 const db_1 = __importDefault(require("./utils/db"));
 const logger_1 = __importDefault(require("./utils/logger"));
 const message_1 = require("./utils/message");
@@ -16,7 +16,7 @@ const initAutoreply = async (upsert, number) => {
     const autoreplies = await db_1.default.autoreplies.findMany({
         where: { device: number },
     });
-    const client = _1.sessions.get(number);
+    const client = sessions_1.default.get(number);
     if (client) {
         autoreplies.map((autoreply) => {
             upsert.messages.map((message) => {
@@ -30,7 +30,7 @@ const initAutoreply = async (upsert, number) => {
     }
 };
 const initTest = async (upsert, number) => {
-    const client = _1.sessions.get(number);
+    const client = sessions_1.default.get(number);
     if (!client) {
         console.error(`No client found for number: ${number}`);
         return;

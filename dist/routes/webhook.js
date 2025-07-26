@@ -1,8 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 // import { getWebhookUser } from "../services/webhook-service";
-const __1 = require("..");
+const sessions_1 = __importDefault(require("../utils/sessions"));
 const router = (0, express_1.Router)();
 router.post("/order-payment", async (req, res) => {
     // const number = await getWebhookUser(req.rawBody ?? "", req.headers['x-shopify-hmac-sha256'] as string);
@@ -11,7 +14,7 @@ router.post("/order-payment", async (req, res) => {
     //   return;
     // }
     console.log(req.body["billing_address"]["phone"]);
-    const client = __1.sessions.get("917012749946");
+    const client = sessions_1.default.get("917012749946");
     const result = await client?.onWhatsApp(req.body["billing_address"]["phone"].replace(/\D/g, ""));
     if (result) {
         await client?.sendMessage(result ? result[0].jid : "", {
@@ -23,7 +26,7 @@ router.post("/order-payment", async (req, res) => {
     res.status(200).json({ message: "sent!", status: true });
 });
 router.post("/customer-update", async (req, res) => {
-    const client = __1.sessions.get("971567326895");
+    const client = sessions_1.default.get("971567326895");
     const result = await client?.onWhatsApp(req.body["default_address"]["phone"].replace(/\D/g, ""));
     if (result) {
         await client?.sendMessage(result ? result[0].jid : "", {
@@ -33,7 +36,7 @@ router.post("/customer-update", async (req, res) => {
     res.status(200).json({ message: "sent!", status: true });
 });
 router.post("/order-create", async (req, res) => {
-    const client = __1.sessions.get("971567326895");
+    const client = sessions_1.default.get("971567326895");
     const result = await client?.onWhatsApp(req.body["billing_address"]["phone"].replace(/\D/g, ""));
     if (result) {
         await client?.sendMessage(result ? result[0].jid : "", {
@@ -43,7 +46,7 @@ router.post("/order-create", async (req, res) => {
     res.status(200).json({ message: "sent!", status: true });
 });
 // router.post("/order-update", async (req, res) => {
-//   const client = sessions.get("971567326895");
+//   const client = clients.get("971567326895");
 //   const result = await client?.onWhatsApp(
 //     req.body["billing_address"]["phone"].replace(/\D/g, "")
 //   );
@@ -55,7 +58,7 @@ router.post("/order-create", async (req, res) => {
 //   res.status(200).json({ message: "sent!", status: true });
 // });
 router.post("/fullfilment_creation", async (req, res) => {
-    const client = __1.sessions.get("971567326895");
+    const client = sessions_1.default.get("971567326895");
     const result = await client?.onWhatsApp(req.body["destination"]["phone"].replace(/\D/g, ""));
     if (result) {
         await client?.sendMessage(result ? result[0].jid : "", {

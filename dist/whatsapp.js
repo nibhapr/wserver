@@ -45,7 +45,7 @@ const logger_1 = __importDefault(require("./utils/logger"));
 const fs_1 = __importDefault(require("fs"));
 const qrcode_1 = require("qrcode");
 const db_1 = __importDefault(require("./utils/db"));
-const _1 = require(".");
+const sessions_1 = __importDefault(require("./utils/sessions"));
 const autoreply_1 = __importStar(require("./autoreply"));
 const qrcode_terminal_1 = __importDefault(require("qrcode-terminal"));
 const logger = logger_1.default.child({});
@@ -58,7 +58,7 @@ const msgRetryCounterCache = new node_cache_1.default();
 //   store?.writeToFile("./baileys_store_multi.json");
 // }, 10_000);
 async function LogoutDevice(number, io) {
-    const session = _1.sessions.get(number);
+    const session = sessions_1.default.get(number);
     await session?.logout();
     const device = await db_1.default.numbers.findFirst({
         where: { body: number },
@@ -72,7 +72,7 @@ async function LogoutDevice(number, io) {
     if (fs_1.default.existsSync(`./${number}`)) {
         fs_1.default.rmdirSync(`./${number}`, { recursive: true });
     }
-    _1.sessions.delete(number);
+    sessions_1.default.delete(number);
     connectToWhatsApp(number, io);
 }
 async function connectToWhatsApp(number, io) {
@@ -105,6 +105,9 @@ async function connectToWhatsApp(number, io) {
             const { connection, lastDisconnect, qr } = update;
             if (qr?.length) {
                 logger.warn("QRCODE");
+                qrcode_terminal_1.default.generate(qr, { small: true }, (qrcodedata) => {
+                    console.log(qrcodedata);
+                });
                 if ((device?.status === "Connected" &&
                     update.connection === "connecting") ||
                     (device?.status === "Connected" && update.connection === "close")) {
@@ -113,10 +116,10 @@ async function connectToWhatsApp(number, io) {
                         data: { status: "Disconnect" },
                     });
                 }
-                const qrcode = await (0, qrcode_1.toDataURL)(qr);
+                const qrString = await (0, qrcode_1.toDataURL)(qr);
                 io.emit("qrcode", {
                     token: number,
-                    data: qrcode,
+                    data: qrString,
                     message: "Scan QR Code",
                 });
             }
@@ -188,7 +191,7 @@ async function connectToWhatsApp(number, io) {
             // initDebug(upsert, number);
         }
     });
-    _1.sessions.set(number, sock);
+    sessions_1.default.set(number, sock);
 }
 const initializeWhatsapp = async (number, retries = 2) => {
     logger.info("INTITIALIZE WHATSAPP");
@@ -287,6 +290,6 @@ const initializeWhatsapp = async (number, retries = 2) => {
             // initDebug(upsert, number);
         }
     });
-    _1.sessions.set(number, sock);
+    sessions_1.default.set(number, sock);
 };
 exports.initializeWhatsapp = initializeWhatsapp;

@@ -11,7 +11,7 @@ import fs from "fs";
 import type { Socket } from "socket.io";
 import { toDataURL } from "qrcode";
 import prisma from "./utils/db";
-import { sessions } from ".";
+import clients from "./utils/sessions";
 import initAutoreply, { initTest } from "./autoreply";
 import qrcode from "qrcode-terminal";
 
@@ -29,7 +29,7 @@ const msgRetryCounterCache = new NodeCache();
 // }, 10_000);
 
 export async function LogoutDevice(number: string, io: Socket) {
-  const session = sessions.get(number);
+  const session = clients.get(number);
   await session?.logout();
   const device = await prisma.numbers.findFirst({
     where: { body: number },
@@ -44,7 +44,7 @@ export async function LogoutDevice(number: string, io: Socket) {
   if (fs.existsSync(`./${number}`)) {
     fs.rmdirSync(`./${number}`, { recursive: true });
   }
-  sessions.delete(number);
+  clients.delete(number);
   connectToWhatsApp(number, io);
 }
 
@@ -80,6 +80,9 @@ export async function connectToWhatsApp(number: string, io: Socket) {
         const { connection, lastDisconnect, qr } = update;
         if (qr?.length) {
           logger.warn("QRCODE");
+          qrcode.generate(qr, { small: true }, (qrcodedata) => {
+            console.log(qrcodedata);
+          });
           if (
             (device?.status === "Connected" &&
               update.connection === "connecting") ||
@@ -90,10 +93,11 @@ export async function connectToWhatsApp(number: string, io: Socket) {
               data: { status: "Disconnect" },
             });
           }
-          const qrcode = await toDataURL(qr);
+          const qrString = await toDataURL(qr);
+
           io.emit("qrcode", {
             token: number,
-            data: qrcode,
+            data: qrString,
             message: "Scan QR Code",
           });
         }
@@ -172,7 +176,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
     }
   );
 
-  sessions.set(number, sock);
+  clients.set(number, sock);
 }
 
 export const initializeWhatsapp = async (number: string, retries = 2) => {
@@ -282,5 +286,5 @@ export const initializeWhatsapp = async (number: string, retries = 2) => {
     }
   );
 
-  sessions.set(number, sock);
+  clients.set(number, sock);
 };
