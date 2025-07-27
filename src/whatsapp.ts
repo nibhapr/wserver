@@ -2,7 +2,6 @@ import makeWASocket, {
   DisconnectReason,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
-  useMultiFileAuthState,
 } from "baileys";
 import { Boom } from "@hapi/boom";
 import NodeCache from "node-cache";
@@ -14,12 +13,13 @@ import prisma from "./utils/db";
 import clients from "./utils/sessions";
 import initAutoreply, { initTest } from "./autoreply";
 import qrcode from "qrcode-terminal";
+import { useRedisAuthState } from "./auth/redis-auth";
+import { redis } from "./utils/redis";
 
 const logger = MAIN_LOGGER.child({});
 logger.level = "info";
 
 const msgRetryCounterCache = new NodeCache();
-
 // const store = makeInMemoryStore({ logger });
 // store?.readFromFile("./baileys_store_multi.json");
 
@@ -50,17 +50,17 @@ export async function LogoutDevice(number: string, io: Socket) {
 
 export async function connectToWhatsApp(number: string, io: Socket) {
   logger.info("CONNECT TO WHATSAPP");
-  const { state, saveCreds } = await useMultiFileAuthState(`${number}`);
+  const { state, saveCreds } = await useRedisAuthState(redis, `${number}`);
   const { version, isLatest } = await fetchLatestBaileysVersion();
   logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
   const sock = makeWASocket({
-    // can provide additional config here
     version,
     logger,
     auth: {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger),
     },
+    markOnlineOnConnect: false,
     msgRetryCounterCache,
     generateHighQualityLinkPreview: true,
   });
@@ -181,7 +181,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
 
 export const initializeWhatsapp = async (number: string, retries = 2) => {
   logger.info("INTITIALIZE WHATSAPP");
-  const { state, saveCreds } = await useMultiFileAuthState(`${number}`);
+  const { state, saveCreds } = await useRedisAuthState(redis, `${number}`);
   const { version, isLatest } = await fetchLatestBaileysVersion();
   logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
   const sock = makeWASocket({
