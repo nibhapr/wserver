@@ -2,7 +2,6 @@ import express, { Application, Request, Response } from "express";
 import { LogoutDevice, connectToWhatsApp } from "./whatsapp";
 import { createServer } from "http";
 import { Server as SocketServer } from "socket.io";
-import { WASocket } from "baileys";
 import bodyParser from "body-parser";
 import initSessions from "./initSessions";
 import routes from "./routes";

@@ -68,10 +68,7 @@ export async function connectToWhatsApp(number: string, io: Socket) {
   // store?.bind(sock.ev);
 
   sock.ev.process(
-    // events is a map for event name => event data
     async (events) => {
-      // something about the connection changed
-      // maybe it closed, or we received all offline message or connection opened
       if (events["connection.update"]) {
         const device = await prisma.numbers.findFirst({
           where: { body: number },
@@ -94,14 +91,12 @@ export async function connectToWhatsApp(number: string, io: Socket) {
             });
           }
           const qrString = await toDataURL(qr);
-
           io.emit("qrcode", {
             token: number,
             data: qrString,
             message: "Scan QR Code",
           });
         }
-
         if (connection === "open") {
           const connectedDevice = sock.user;
           const connectedNumber = connectedDevice?.id
@@ -111,7 +106,6 @@ export async function connectToWhatsApp(number: string, io: Socket) {
             where: { id: device?.id },
             data: { status: "Connected" },
           });
-
           if (connectedNumber != number.toString()) {
             io.emit("number-mismatch");
             await sock.logout();
@@ -128,7 +122,6 @@ export async function connectToWhatsApp(number: string, io: Socket) {
           }
         }
         if (connection === "close") {
-          // reconnect if not logged out
           if ((lastDisconnect?.error as Boom)?.output?.statusCode === 515) {
             connectToWhatsApp(`${number}`, io);
           }
@@ -142,10 +135,8 @@ export async function connectToWhatsApp(number: string, io: Socket) {
                 data: { status: "Disconnect" },
               });
             }
-            // console.log(lastDisconnect?.error?.name)
-            // connectToWhatsApp(`${number}`, io);
           } else {
-            fs.rmdirSync(`./${number}`, { recursive: true });
+            // fs.rmdirSync(`./${number}`, { recursive: true });
             connectToWhatsApp(`${number}`, io);
             const device = await prisma.numbers.findFirst({
               where: { body: number },
@@ -185,7 +176,6 @@ export const initializeWhatsapp = async (number: string, retries = 2) => {
   const { version, isLatest } = await fetchLatestBaileysVersion();
   logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
   const sock = makeWASocket({
-    // can provide additional config here
     logger,
     version,
     auth: {
@@ -195,13 +185,8 @@ export const initializeWhatsapp = async (number: string, retries = 2) => {
     msgRetryCounterCache,
     generateHighQualityLinkPreview: true,
   });
-
-  // store?.bind(sock.ev);
   sock.ev.process(
-    // events is a map for event name => event data
     async (events) => {
-      // something about the connection changed
-      // maybe it closed, or we received all offline message or connection opened
       if (events["connection.update"]) {
         const connectedDevice = sock.user?.id.split(":")[0].replace(/\D/g, "");
         logger.info(`Connected to ${connectedDevice}`);
@@ -226,7 +211,6 @@ export const initializeWhatsapp = async (number: string, retries = 2) => {
             });
           }
         }
-
         if (connection === "open") {
           await prisma.numbers.update({
             where: { id: device?.id },
@@ -234,9 +218,7 @@ export const initializeWhatsapp = async (number: string, retries = 2) => {
           });
         }
         if (connection === "close") {
-          // reconnect if not logged out
           if ((lastDisconnect?.error as Boom)?.output?.statusCode === 515) {
-            console.log("YESSSSSSSSSSSSSSSSSSSSSSSSSS");
             if (retries > 0) {
               console.log(`Retrying connection... Attempts left: ${retries}`);
               initializeWhatsapp(number, retries - 1);
@@ -252,10 +234,8 @@ export const initializeWhatsapp = async (number: string, retries = 2) => {
                 data: { status: "Disconnect" },
               });
             }
-            // console.log(lastDisconnect?.error?.name)
-            // connectToWhatsApp(`${number}`, io);
           } else {
-            fs.rmdirSync(`./${number}`, { recursive: true });
+            // fs.rmdirSync(`./${number}`, { recursive: true });
             initializeWhatsapp(number);
             const device = await prisma.numbers.findFirst({
               where: { body: number },
@@ -270,12 +250,10 @@ export const initializeWhatsapp = async (number: string, retries = 2) => {
 
         console.log("CONNECTION UPDATE", update);
       }
-
       // credentials updated -- save them
       if (events["creds.update"]) {
         await saveCreds();
       }
-
       //Initialize autoreplies
       if (events["messages.upsert"]) {
         const upsert = events["messages.upsert"];
