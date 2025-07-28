@@ -48,6 +48,8 @@ const db_1 = __importDefault(require("./utils/db"));
 const sessions_1 = __importDefault(require("./utils/sessions"));
 const autoreply_1 = __importStar(require("./autoreply"));
 const qrcode_terminal_1 = __importDefault(require("qrcode-terminal"));
+const redis_auth_1 = require("./auth/redis-auth");
+const redis_1 = require("./utils/redis");
 const logger = logger_1.default.child({});
 logger.level = "info";
 const msgRetryCounterCache = new node_cache_1.default();
@@ -77,26 +79,22 @@ async function LogoutDevice(number, io) {
 }
 async function connectToWhatsApp(number, io) {
     logger.info("CONNECT TO WHATSAPP");
-    const { state, saveCreds } = await (0, baileys_1.useMultiFileAuthState)(`${number}`);
+    const { state, saveCreds } = await (0, redis_auth_1.useRedisAuthState)(redis_1.redis, `${number}`);
     const { version, isLatest } = await (0, baileys_1.fetchLatestBaileysVersion)();
     logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
     const sock = (0, baileys_1.default)({
-        // can provide additional config here
         version,
         logger,
         auth: {
             creds: state.creds,
             keys: (0, baileys_1.makeCacheableSignalKeyStore)(state.keys, logger),
         },
+        markOnlineOnConnect: false,
         msgRetryCounterCache,
         generateHighQualityLinkPreview: true,
     });
     // store?.bind(sock.ev);
-    sock.ev.process(
-    // events is a map for event name => event data
-    async (events) => {
-        // something about the connection changed
-        // maybe it closed, or we received all offline message or connection opened
+    sock.ev.process(async (events) => {
         if (events["connection.update"]) {
             const device = await db_1.default.numbers.findFirst({
                 where: { body: number },
@@ -149,7 +147,6 @@ async function connectToWhatsApp(number, io) {
                 }
             }
             if (connection === "close") {
-                // reconnect if not logged out
                 if (lastDisconnect?.error?.output?.statusCode === 515) {
                     connectToWhatsApp(`${number}`, io);
                 }
@@ -161,11 +158,9 @@ async function connectToWhatsApp(number, io) {
                             data: { status: "Disconnect" },
                         });
                     }
-                    // console.log(lastDisconnect?.error?.name)
-                    // connectToWhatsApp(`${number}`, io);
                 }
                 else {
-                    fs_1.default.rmdirSync(`./${number}`, { recursive: true });
+                    // fs.rmdirSync(`./${number}`, { recursive: true });
                     connectToWhatsApp(`${number}`, io);
                     const device = await db_1.default.numbers.findFirst({
                         where: { body: number },
@@ -195,11 +190,10 @@ async function connectToWhatsApp(number, io) {
 }
 const initializeWhatsapp = async (number, retries = 2) => {
     logger.info("INTITIALIZE WHATSAPP");
-    const { state, saveCreds } = await (0, baileys_1.useMultiFileAuthState)(`${number}`);
+    const { state, saveCreds } = await (0, redis_auth_1.useRedisAuthState)(redis_1.redis, `${number}`);
     const { version, isLatest } = await (0, baileys_1.fetchLatestBaileysVersion)();
     logger.info(`using WA v${version.join(".")}, isLatest: ${isLatest}`);
     const sock = (0, baileys_1.default)({
-        // can provide additional config here
         logger,
         version,
         auth: {
@@ -209,12 +203,7 @@ const initializeWhatsapp = async (number, retries = 2) => {
         msgRetryCounterCache,
         generateHighQualityLinkPreview: true,
     });
-    // store?.bind(sock.ev);
-    sock.ev.process(
-    // events is a map for event name => event data
-    async (events) => {
-        // something about the connection changed
-        // maybe it closed, or we received all offline message or connection opened
+    sock.ev.process(async (events) => {
         if (events["connection.update"]) {
             const connectedDevice = sock.user?.id.split(":")[0].replace(/\D/g, "");
             logger.info(`Connected to ${connectedDevice}`);
@@ -244,9 +233,7 @@ const initializeWhatsapp = async (number, retries = 2) => {
                 });
             }
             if (connection === "close") {
-                // reconnect if not logged out
                 if (lastDisconnect?.error?.output?.statusCode === 515) {
-                    console.log("YESSSSSSSSSSSSSSSSSSSSSSSSSS");
                     if (retries > 0) {
                         console.log(`Retrying connection... Attempts left: ${retries}`);
                         (0, exports.initializeWhatsapp)(number, retries - 1);
@@ -260,11 +247,9 @@ const initializeWhatsapp = async (number, retries = 2) => {
                             data: { status: "Disconnect" },
                         });
                     }
-                    // console.log(lastDisconnect?.error?.name)
-                    // connectToWhatsApp(`${number}`, io);
                 }
                 else {
-                    fs_1.default.rmdirSync(`./${number}`, { recursive: true });
+                    // fs.rmdirSync(`./${number}`, { recursive: true });
                     (0, exports.initializeWhatsapp)(number);
                     const device = await db_1.default.numbers.findFirst({
                         where: { body: number },

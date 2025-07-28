@@ -1,51 +1,38 @@
-// file: ./worker.ts
 import { Worker } from 'bullmq';
-import prisma from './utils/db';
-import { sendBlast } from './utils/message';
-import clients from './utils/sessions';
-import { WASocket } from 'baileys';
 import { redis } from './utils/redis';
+import NodeCache from 'node-cache';
+import { startWhatsAppSession } from './lib/whatsapp';
+import logger from './utils/logger';
 
-const worker = new Worker('blast-queue', async job => {
-  const { blastId } = job.data;
+export const sessions = new Map();
+export const msgRetryCounterCache = new NodeCache();
 
-  // Fetch the latest blast data from the DB
-  const blast = await prisma.blasts.findUnique({ where: { id: blastId } });
 
-  if (!blast) {
-    console.error(`Blast with ID ${blastId} not found.`);
-    return;
+new Worker('whatsapp-jobs', async (job) => {
+  logger.info(`Processing job: ${job.name} for session: ${job.data.number}`);
+  switch (job.name) {
+    case 'connect-whatsapp':
+      await startWhatsAppSession(job.data.number);
+      break;
+
+    case 'send-message':
+      const { number, to, text } = job.data;
+      const sock = sessions.get(number);
+
+      if (sock) {
+        try {
+          console.log(`Sending message to ${to} from session ${number}`);
+          //TODO: Good place to add delay
+          await sock.sendMessage(`${to}@s.whatsapp.net`, { text });
+        } catch (error) {
+          console.error('Failed to send message:', error);
+          throw error; // Fail the job so it can be retried
+        }
+      } else {
+        //TODO:: Handle case where session is not found (Message not sent)
+        console.error(`Session ${number} not found. Cannot send message.`);
+        throw new Error(`Session ${number} not found. Cannot send message.`);
+      }
+      break;
   }
-
-  // Use a try...catch block for robust error handling
-  try {
-    const client = clients.get(blast.sender) as WASocket;
-    const result = await sendBlast(client, blast.receiver, blast.message, blast.type);
-
-    if (result) {
-      await prisma.blasts.update({
-        where: { id: blast.id },
-        data: { status: 'success', updated_at: new Date() },
-      });
-      console.log(`Successfully sent message to ${blast.receiver}`);
-    } else {
-      // This 'else' handles cases where sendBlast resolves but indicates failure
-      throw new Error('sendBlast returned a falsy result');
-    }
-  } catch (error) {
-    console.error(`Failed to send message to ${blast.receiver}:`, error);
-    await prisma.blasts.update({
-      where: { id: blast.id },
-      data: { status: 'failed', updated_at: new Date() },
-    });
-  }
-}, {
-  connection: redis,
-  // BullMQ has built-in rate limiting, which is better than setTimeout
-  limiter: {
-    max: 1, // Max 1 job
-    duration: 500, // per 5000 milliseconds (5 seconds)
-  },
-});
-
-console.log('Worker is listening for jobs...');
+}, { connection: redis });

@@ -74,3 +74,21 @@ export const useRedisAuthState = async (
     }
   };
 }
+
+/**
+ * Finds and deletes all Redis keys associated with a session ID.
+ * @param {RedisClientType} redis - The Redis client instance.
+ * @param {string} sessionId - The session ID to clear.
+ */
+export async function deleteSessionFromRedis(redis: Redis, sessionId: string) {
+  let cursor = 0;
+  let keys: string[] = [];
+  do {
+    // Scan for keys matching the session pattern
+    const reply = await redis.scan(cursor, "MATCH", `${sessionId}:*`, "COUNT", 1000);
+    keys.push(...reply[1]);
+  } while (cursor !== 0);
+  console.log(`Deleting keys for session ${sessionId}:`, keys);
+  await redis.del(keys); // Delete all found keys
+}
+

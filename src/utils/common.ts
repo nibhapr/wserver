@@ -19,3 +19,5 @@ export const verifyHmacSha256 = (secret: string, payload: any, providedHmac: str
 export const generateGoodMorningMessage = () => {
   return `${good[Math.floor(Math.random() * good.length)]} ${morning[Math.floor(Math.random() * morning.length)]}`;
 }
+
+export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
