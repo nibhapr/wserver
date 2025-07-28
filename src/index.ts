@@ -3,7 +3,6 @@ import { LogoutDevice, connectToWhatsApp } from "./whatsapp";
 import { createServer } from "http";
 import { Server as SocketServer } from "socket.io";
 import bodyParser from "body-parser";
-import initSessions from "./initSessions";
 import routes from "./routes";
 import logger from "./utils/logger";
 
@@ -32,18 +31,18 @@ app.post("/delete-device", (_req: Request, res: Response) => {
   res.status(200).json({ message: "DELETED!" });
 });
 
-initSessions();
+// initSessions();
 
 io.on("connection", (socket) => {
   // Initialize All devices and set Sessions
-  logger.info("Socket Connected");
-  socket.on("StartConnection", (number: string) => {
-    connectToWhatsApp(number, socket); // init a particular device
-  });
-
-  socket.on("LogoutDevice", (number: string) => {
-    LogoutDevice(number.toString(), socket);
-  });
+  // logger.info("Socket Connected");
+  // socket.on("StartConnection", (number: string) => {
+  //   connectToWhatsApp(number, socket); // init a particular device
+  // });
+  //
+  // socket.on("LogoutDevice", (number: string) => {
+  //   LogoutDevice(number.toString(), socket);
+  // });
 });
 
 server.listen(port, () => console.log(`Server is listening on port ${port}!`));

@@ -9,6 +9,8 @@ import {
 import mime from "mime";
 import { sendEachBlast } from "../services/message-service";
 import { sendTextSchema } from "../schema/messageSchema";
+import { Queue } from "bullmq";
+import { redis } from "../utils/redis";
 
 export const sendText: RequestHandler = async (
   req: Request<object, object, ISentText>,
@@ -24,20 +26,24 @@ export const sendText: RequestHandler = async (
     return;
   }
   try {
-    const client = clients.get(req.body.token);
-    const result = await client?.onWhatsApp(req.body.number);
-    const response = await client?.sendMessage(result ? result[0].jid : "", {
-      text: req.body.text ?? "",
-    });
-    console.log(client, result);
-    if (response) {
-      res.status(200).json({ message: "sent!", status: true });
-    } else {
-      res.status(500).json({
-        message: "Failed to send message",
-        status: false,
-      });
-    }
+    const queue = new Queue("whatsapp-jobs", { connection: redis });
+    await queue.add('send-message', {
+      number: req.body.token,
+      to: req.body.number,
+      text: req.body.text,
+    })
+    res.status(200).json({
+      message: "Message Sent!",
+      status: true
+    })
+    // if (response) {
+    //   res.status(200).json({ message: "sent!", status: true });
+    // } else {
+    //   res.status(500).json({
+    //     message: "Failed to send message",
+    //     status: false,
+    //   });
+    // }
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -73,13 +79,14 @@ export const sendBulk: RequestHandler = async (
   req: Request<object, object, ISendBulk>,
   res: Response<IResponse>
 ) => {
-  const client = clients.get(req.body.data[0].sender);
-  if (client) {
-    await sendEachBlast(req.body.data, req.body.delay, client);
-    res.status(200).json({ status: true, message: "Messages sent!" });
-  } else {
-    res
-      .status(404)
-      .json({ message: "Whatsapp session not found!", status: false });
-  }
+  const queue = new Queue("whatsapp-jobs", { connection: redis });
+  const messages = req.body.data.map(e => e)
+  await queue.addBulk(messages.map(message => ({
+    name: 'send-message',
+    data: message,
+  })))
+  res.status(200).json({
+    status: true,
+    message: "Messages are being sent in the background",
+  })
 };
