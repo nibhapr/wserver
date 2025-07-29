@@ -7,25 +7,27 @@ import logger from './utils/logger';
 import prisma from './utils/db';
 import { sleep } from './utils/common';
 import { blasts } from '@prisma/client';
+import { QUEUE_NAME } from './utils/constants';
 export const sessions = new Map();
 export const msgRetryCounterCache = new NodeCache();
 
-new Worker<WhatsappJob["data"], any, WhatsappJob['name']>('whatsapp-jobs', async (job: Job<WhatsappJob['data'], any, WhatsappJob['name']>) => {
+new Worker<WhatsappJob>(QUEUE_NAME, async (job: Job<WhatsappJob>) => {
   logger.info(`Processing job: ${job.name} for session: ${job.data.sender}`);
-  switch (job.name) {
+  switch (job.data.type) {
     case 'connect-whatsapp':
       await startWhatsAppSession(job.data.sender);
       break;
-
     case 'send-message':
-      const { sender, receiver, message } = job.data
+      const { sender, receiver, message, noDelay = false } = job.data
       const sock = sessions.get(sender);
       if (sock) {
         try {
           console.log(`Sending message to ${receiver} from session ${sender}`);
           //TODO: Good place to add delay
-          const randomDelay = Math.floor(Math.random() * 1000) + 500; // Random delay between 500ms and 1500ms
-          await sleep(randomDelay);
+          if (!noDelay) {
+            const randomDelay = Math.floor(Math.random() * 1000) + 500; // Random delay between 500ms and 1500ms
+            await sleep(randomDelay);
+          }
           // await sock.sendMessage(`${to}@s.whatsapp.net`, { text });
           const result = await sock.onWhatsApp(receiver);
           const response = await sock.sendMessage(result ? result[0].jid : "", {
@@ -42,17 +44,18 @@ new Worker<WhatsappJob["data"], any, WhatsappJob['name']>('whatsapp-jobs', async
         throw new Error(`Session ${sender} not found. Cannot send message.`);
       }
       break;
+
   }
 }, { connection: redis });
 
 async function initializeWorker() {
   logger.info('WhatsApp worker initialized');
-  const queue = new Queue('whatsapp-jobs', {
+  const queue = new Queue<WhatsappJob>(QUEUE_NAME, {
     connection: redis,
   })
   const numbers = await prisma.numbers.findMany();
   numbers.forEach(number => {
-    queue.add('connect-whatsapp', { number: number.body }, {
+    queue.add('connect-whatsapp', { sender: number.body, type: 'connect-whatsapp' }, {
       delay: 1000, // Delay to avoid overwhelming the WhatsApp API
       attempts: 1,
     });

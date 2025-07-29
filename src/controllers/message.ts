@@ -11,6 +11,8 @@ import { sendEachBlast } from "../services/message-service";
 import { sendTextSchema } from "../schema/messageSchema";
 import { Queue } from "bullmq";
 import { redis } from "../utils/redis";
+import { WhatsappJob } from "../types/job";
+import { QUEUE_NAME } from "../utils/constants";
 
 export const sendText: RequestHandler = async (
   req: Request<object, object, ISentText>,
@@ -26,24 +28,18 @@ export const sendText: RequestHandler = async (
     return;
   }
   try {
-    const queue = new Queue("whatsapp-jobs", { connection: redis });
+    const queue = new Queue<WhatsappJob>(QUEUE_NAME, { connection: redis });
     await queue.add('send-message', {
-      number: req.body.token,
-      to: req.body.number,
-      text: req.body.text,
+      type: 'send-message',
+      sender: req.body.token,
+      receiver: req.body.number,
+      message: req.body.text!,
     })
     res.status(200).json({
       message: "Message Sent!",
       status: true
     })
-    // if (response) {
-    //   res.status(200).json({ message: "sent!", status: true });
-    // } else {
-    //   res.status(500).json({
-    //     message: "Failed to send message",
-    //     status: false,
-    //   });
-    // }
+    //NOTE: Might want to handle some response here
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -79,7 +75,7 @@ export const sendBulk: RequestHandler = async (
   req: Request<object, object, ISendBulk>,
   res: Response<IResponse>
 ) => {
-  const queue = new Queue("whatsapp-jobs", { connection: redis });
+  const queue = new Queue(QUEUE_NAME, { connection: redis });
   const messages = req.body.data.map(e => e)
   await queue.addBulk(messages.map(message => ({
     name: 'send-message',

@@ -5,6 +5,7 @@ import { redis } from "../utils/redis";
 import { msgRetryCounterCache, sessions } from "../worker";
 import logger from "../utils/logger";
 import { Boom } from "@hapi/boom";
+import initAutoreply from "../autoreply";
 
 export async function startWhatsAppSession(number: string) {
   logger.info(`Starting WhatsApp session for: ${number}`);
@@ -53,6 +54,9 @@ export async function startWhatsAppSession(number: string) {
     }
   });
   sock.ev.on('creds.update', saveCreds);
+  sock.ev.on('messages.upsert', async (m) => {
+    initAutoreply(m, number)
+  })
   return sock;
 }
 

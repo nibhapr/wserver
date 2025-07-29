@@ -1,15 +1,17 @@
 import type { blasts } from "@prisma/client";
 
-export interface ConnectWhatsappJob {
-  name: 'connect-whatsapp';
-  data: {
-    sender: string;
-  }
+interface ConnectWhatsappJob {
+  type: 'connect-whatsapp';
+  sender: string;
 }
 
-export interface SendMessageJob {
-  name: 'send-message';
-  data: blasts;
+interface SendMessageJob {
+  type: 'send-message';
+  sender: string;
+  noDelay?: boolean;
+  receiver: string;
+  message: string;
 }
 
 export type WhatsappJob = ConnectWhatsappJob | SendMessageJob;
+
