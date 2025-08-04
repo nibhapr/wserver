@@ -7,11 +7,11 @@ const queue = new Queue<WhatsappJob>(QUEUE_NAME, {
   connection: redis
 })
 
-const A = "917034983527";
+const A = "919495722263";
 const B = "919400116811";
 
 const main = async () => {
-  await queue.add("connect-whatsapp", { sender: A, type: 'connect-whatsapp' })
+  const q = await queue.add("connect-whatsapp", { sender: A, type: 'connect-whatsapp' })
   // await queue.add("connect-whatsapp", { number: B })
   // for (let i = 0; i < 50; i++) {
   //   await queue.add("send-message", { number: "917902708908", to: "917012749946", "text": `Hello ${i + 1}` })

@@ -31,6 +31,8 @@ export async function startWhatsAppSession(number: string) {
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update;
     if (qr) {
+      const res = await redis.publish(`qr:${number}`, qr);
+      logger.info(`QR code for ${number} published to Redis channel: qr:${number}, result: ${res}`);
       qrcode.generate(qr, { small: true }, (qrcode) => {
         console.log(qrcode);
       });

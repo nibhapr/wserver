@@ -5,6 +5,7 @@ import { Server as SocketServer } from "socket.io";
 import bodyParser from "body-parser";
 import routes from "./routes";
 import logger from "./utils/logger";
+import { redisSubscriber } from "./utils/redis";
 
 // Boot express
 const app: Application = express();
@@ -32,14 +33,23 @@ app.post("/delete-device", (_req: Request, res: Response) => {
 });
 
 // initSessions();
+const channel = `qr:919495722263`
+redisSubscriber.subscribe(channel, (message) => {
+  logger.info(`Received message from ${channel}: ${message}`);
+})
 
-io.on("connection", (socket) => {
-  // Initialize All devices and set Sessions
-  // logger.info("Socket Connected");
-  // socket.on("StartConnection", (number: string) => {
-  //   connectToWhatsApp(number, socket); // init a particular device
-  // });
-  //
+
+io.on("connection", async (socket) => {
+  logger.info("Socket Connected");
+
+  socket.on("StartConnection", async (number: string) => {
+    // connectToWhatsApp(number, socket); // init a particular device
+    const channel = `qr:${number}`
+    await redisSubscriber.subscribe(channel, (message) => {
+      logger.info(`Received message from ${channel}: ${message}`);
+    })
+  });
+
   // socket.on("LogoutDevice", (number: string) => {
   //   LogoutDevice(number.toString(), socket);
   // });
