@@ -1,5 +1,3 @@
-import type { blasts } from "@prisma/client";
-
 interface ConnectWhatsappJob {
   type: 'connect-whatsapp';
   sender: string;

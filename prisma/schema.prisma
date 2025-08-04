@@ -3,187 +3,139 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model autoreplies {
-  id         BigInt           @id @default(autoincrement())
-  user_id    BigInt
-  device     String
-  keyword    String
-  type       autoreplies_type
-  reply      String
-  created_at DateTime
-  updated_at DateTime?
+model Blast {
+  id          String      @id
+  type        BlastType
+  messageType MessageType
+  status      BlastStatus @default(Pending)
+  campaignId  String?
+  contactId   String?
+  Campaign    Campaign?   @relation(fields: [campaignId], references: [id])
 }
 
-model blasts {
-  id          BigInt        @id @default(autoincrement())
-  user_id     BigInt
-  sender      String
-  campaign_id BigInt
-  receiver    String
-  message     String
-  type        blasts_type
-  status      blasts_status
-  created_at  DateTime?
-  updated_at  DateTime?
-  campaigns   campaigns     @relation(fields: [campaign_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "blasts_campaign_id_foreign")
-  users       users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "blasts_user_id_foreign")
+model Campaign {
+  id           String      @id
+  name         String
+  senderNumber String
+  userId       String
+  campaignType MessageType
+  description  String?
+  scheduledAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime
+  Blast        Blast[]
+  user         user        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model campaigns {
-  id         BigInt           @id @default(autoincrement())
-  user_id    BigInt
-  sender     String
-  name       String
-  tag        String
-  type       String
-  status     campaigns_status @default(waiting)
-  message    String
-  schedule   DateTime?
-  created_at DateTime
-  updated_at DateTime?
-  blasts     blasts[]
-  users      users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "campaigns_user_id_foreign")
-}
-
-model contacts {
-  id         BigInt    @id @default(autoincrement())
-  user_id    BigInt
-  tag_id     BigInt
-  name       String?
-  number     String
-  created_at DateTime
-  updated_at DateTime?
-  tags       tags      @relation(fields: [tag_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "contacts_tag_id_foreign")
-}
-
-model migrations {
-  id    Int @id @default(autoincrement())
-  batch Int
-}
-
-model numbers {
-  id            BigInt         @id @default(autoincrement())
-  user_id       BigInt
-  body          String
-  webhook       String?
-  messages_sent Int            @default(0)
-  status        numbers_status
-  created_at    DateTime?
-  updated_at    DateTime?
-  users         users?         @relation(fields: [user_id], references: [id])
-}
-
-model personal_access_tokens {
-  id             BigInt    @id @default(autoincrement())
-  tokenable_type String
-  tokenable_id   BigInt
+model Contact {
+  id             String       @id
   name           String
-  token          String    @unique(map: "personal_access_tokens_token_unique") @db.VarChar(64)
-  abilities      String?
-  last_used_at   DateTime?
-  created_at     DateTime?
-  updated_at     DateTime?
-
-  @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
+  phone          String
+  userId         String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  contactGroupId String
+  ContactGroup   ContactGroup @relation(fields: [contactGroupId], references: [id])
+  user           user         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model schedules {
-  id         BigInt    @id @default(autoincrement())
-  user_id    BigInt
-  type       String
-  sender     String
-  numbers    String
-  text       String
-  media      String?
-  footer     String?
-  button1    String?
-  button2    String?
-  datetime   DateTime
-  created_at DateTime
-  updated_at DateTime?
+model ContactGroup {
+  id        String    @id
+  name      String
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  Contact   Contact[]
+  user      user      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model tags {
-  id         BigInt     @id @default(autoincrement())
-  user_id    BigInt
-  name       String
-  created_at DateTime
-  updated_at DateTime?
-  contacts   contacts[]
+model Device {
+  id           String       @id
+  messagesSent Int          @default(0)
+  body         String
+  status       DeviceStatus @default(Disconnected)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  userId       String
+  user         user         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model users {
-  id                   BigInt                    @id @default(autoincrement())
-  username             String
-  email                String                    @unique(map: "users_email_unique")
-  email_verified_at    DateTime?
-  password             String
-  api_key              String
-  shopify_webhook      String?
-  chunk_blast          Int
-  level                users_level               @default(user)
-  status               users_status              @default(active)
-  limit_device         Int                       @default(0)
-  active_subscription  users_active_subscription @default(inactive)
-  subscription_expired DateTime?
-  remember_token       String?                   @db.VarChar(100)
-  created_at           DateTime?
-  updated_at           DateTime?
-  blasts               blasts[]
-  campaigns            campaigns[]
-  numbers              numbers[]
+model account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  user                  user      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum autoreplies_type {
-  text
-  image
-  button
-  template
-  list
+model session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum numbers_status {
+model user {
+  id            String         @id
+  email         String         @unique
+  name          String?
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  Campaign      Campaign[]
+  Contact       Contact[]
+  ContactGroup  ContactGroup[]
+  Device        Device[]
+  account       account[]
+  session       session[]
+}
+
+model verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+}
+
+enum BlastStatus {
+  Pending
+  Sent
+  Failed
+}
+
+enum BlastType {
+  AutoReply
+  Campaign
+  Remote
+}
+
+enum DeviceStatus {
   Connected
-  Disconnect
+  Disconnected
 }
 
-enum blasts_type {
-  text
-  button
-  image
-  template
-  list
-}
-
-enum campaigns_status {
-  waiting
-  executed
-  failed
-}
-
-enum blasts_status {
-  failed
-  success
-  pending
-}
-
-enum users_level {
-  admin
-  user
-}
-
-enum users_status {
-  active
-  inactive
-}
-
-enum users_active_subscription {
-  inactive
-  active
-  lifetime
-  trial
+enum MessageType {
+  Text
+  Image
 }

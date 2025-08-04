@@ -6,7 +6,7 @@ import { startWhatsAppSession } from './lib/whatsapp';
 import logger from './utils/logger';
 import prisma from './utils/db';
 import { sleep } from './utils/common';
-import { blasts } from '@prisma/client';
+import { Blast } from '@prisma/client';
 import { QUEUE_NAME } from './utils/constants';
 export const sessions = new Map();
 export const msgRetryCounterCache = new NodeCache();
@@ -53,7 +53,7 @@ async function initializeWorker() {
   const queue = new Queue<WhatsappJob>(QUEUE_NAME, {
     connection: redis,
   })
-  const numbers = await prisma.numbers.findMany();
+  const numbers = await prisma.device.findMany();
   numbers.forEach(number => {
     queue.add('connect-whatsapp', { sender: number.body, type: 'connect-whatsapp' }, {
       delay: 1000, // Delay to avoid overwhelming the WhatsApp API

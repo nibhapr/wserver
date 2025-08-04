@@ -5,13 +5,12 @@ import { redis } from "../utils/redis";
 import { msgRetryCounterCache, sessions } from "../worker";
 import logger from "../utils/logger";
 import { Boom } from "@hapi/boom";
-import initAutoreply from "../autoreply";
 
 export async function startWhatsAppSession(number: string) {
   logger.info(`Starting WhatsApp session for: ${number}`);
   if (sessions.has(number)) {
     logger.info(`Session for ${number} already exists.`);
-    return sessions.get(number);
+    sessions.delete(number)
   }
   logger.info(`Starting new Baileys session: ${number}`);
   const { state, saveCreds } = await useRedisAuthState(redis, `${number}`);
@@ -27,11 +26,11 @@ export async function startWhatsAppSession(number: string) {
     msgRetryCounterCache,
     generateHighQualityLinkPreview: true,
   });
-  sessions.set(number, sock);
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update;
     if (qr) {
       const res = await redis.publish(`qr:${number}`, qr);
+      console.log(qr)
       logger.info(`QR code for ${number} published to Redis channel: qr:${number}, result: ${res}`);
       qrcode.generate(qr, { small: true }, (qrcode) => {
         console.log(qrcode);
@@ -52,13 +51,15 @@ export async function startWhatsAppSession(number: string) {
       case 'connecting':
         break;
       case 'open':
+        const res = await redis.publish(`qr:${number}-status`, "open");
         break;
     }
   });
   sock.ev.on('creds.update', saveCreds);
   sock.ev.on('messages.upsert', async (m) => {
-    initAutoreply(m, number)
+    // initAutoreply(m, number)
   })
+  sessions.set(number, sock);
   return sock;
 }
 
