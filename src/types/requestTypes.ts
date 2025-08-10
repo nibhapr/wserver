@@ -1,7 +1,7 @@
-import type { blasts } from "@prisma/client";
+import type { Blast } from "@prisma/client";
 
 export interface ISentText {
-  token: string;
+  sender: string;
   number: string;
   text?: string;
   type?: string;
@@ -9,16 +9,16 @@ export interface ISentText {
 
 export interface ISentMedia {
   token: string;
-  number: string;  
+  number: string;
   type?: string;
   url?: string;
-  fileName?: string  
-  caption?: string  
+  fileName?: string
+  caption?: string
 }
 
 export interface ISendBulk {
-  data: blasts[]
-  delay: number  
+  data: Blast[]
+  delay: number
 }
 
 export interface IResponse {

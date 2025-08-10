@@ -10,7 +10,9 @@ import { Blast } from '@prisma/client';
 import { QUEUE_NAME } from './utils/constants';
 export const sessions = new Map();
 export const msgRetryCounterCache = new NodeCache();
-
+setInterval(() => {
+  console.log(sessions.keys())
+}, 5000)
 new Worker<WhatsappJob>(QUEUE_NAME, async (job: Job<WhatsappJob>) => {
   logger.info(`Processing job: ${job.name} for session: ${job.data.sender}`);
   switch (job.data.type) {
@@ -19,6 +21,7 @@ new Worker<WhatsappJob>(QUEUE_NAME, async (job: Job<WhatsappJob>) => {
       break;
     case 'send-message':
       const { sender, receiver, message, noDelay = false } = job.data
+      console.log(sessions)
       const sock = sessions.get(sender);
       if (sock) {
         try {

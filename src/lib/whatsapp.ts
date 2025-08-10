@@ -5,6 +5,8 @@ import { redis } from "../utils/redis";
 import { msgRetryCounterCache, sessions } from "../worker";
 import logger from "../utils/logger";
 import { Boom } from "@hapi/boom";
+import prisma from "../utils/db";
+import { updateDeviceStatus } from "./helper";
 
 export async function startWhatsAppSession(number: string) {
   logger.info(`Starting WhatsApp session for: ${number}`);
@@ -14,7 +16,7 @@ export async function startWhatsAppSession(number: string) {
   }
   logger.info(`Starting new Baileys session: ${number}`);
   const { state, saveCreds } = await useRedisAuthState(redis, `${number}`);
-  const { version, isLatest } = await fetchLatestBaileysVersion();
+  const { version } = await fetchLatestBaileysVersion();
   const sock = makeWASocket({
     version,
     logger,
@@ -29,7 +31,11 @@ export async function startWhatsAppSession(number: string) {
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update;
     if (qr) {
-      const res = await redis.publish(`qr:${number}`, qr);
+      const data = {
+        qr: qr,
+        event: "QR"
+      }
+      const res = await redis.publish(`qr:${number}`, JSON.stringify(data));
       console.log(qr)
       logger.info(`QR code for ${number} published to Redis channel: qr:${number}, result: ${res}`);
       qrcode.generate(qr, { small: true }, (qrcode) => {
@@ -39,19 +45,36 @@ export async function startWhatsAppSession(number: string) {
     switch (connection) {
       case 'close':
         const statusCode = (lastDisconnect?.error as Boom)?.output.statusCode;
-        const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+        // const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
         sessions.delete(number);
+        await updateDeviceStatus(number, "Disconnected");
         if ((lastDisconnect?.error as Boom)?.output?.statusCode === DisconnectReason.restartRequired) {
-          startWhatsAppSession(number);
+          await startWhatsAppSession(number);
         }
         if (statusCode === DisconnectReason.loggedOut) {
           await deleteSessionFromRedis(redis, `${number}`);
+          const data = {
+            event: "LOGOUT"
+          }
+          await updateDeviceStatus(number, "Disconnected");
+          const res = await redis.publish(`qr:${number}`, JSON.stringify(data));
+          await startWhatsAppSession(number)
         }
         break;
       case 'connecting':
+        await updateDeviceStatus(number, "Disconnected");
         break;
       case 'open':
-        const res = await redis.publish(`qr:${number}-status`, "open");
+        const profile = await sock.profilePictureUrl(sock.user?.id!)
+        const data = {
+          event: "OPEN",
+          profile: profile,
+        }
+        await updateDeviceStatus(number, "Connected");
+        const res = await redis.publish(`qr:${number}`, JSON.stringify(data));
+        if (!sessions.get(number)) {
+          sessions.set(number, sock);
+        }
         break;
     }
   });
@@ -59,7 +82,6 @@ export async function startWhatsAppSession(number: string) {
   sock.ev.on('messages.upsert', async (m) => {
     // initAutoreply(m, number)
   })
-  sessions.set(number, sock);
   return sock;
 }
 

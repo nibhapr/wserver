@@ -31,7 +31,7 @@ export const sendText: RequestHandler = async (
     const queue = new Queue<WhatsappJob>(QUEUE_NAME, { connection: redis });
     await queue.add('send-message', {
       type: 'send-message',
-      sender: req.body.token,
+      sender: req.body.sender,
       receiver: req.body.number,
       message: req.body.text!,
     })

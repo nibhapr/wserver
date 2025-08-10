@@ -7,8 +7,8 @@ import { QUEUE_NAME } from "./utils/constants";
 const queue = new Queue<WhatsappJob>(QUEUE_NAME, {
   connection: redis
 })
-const A = "919495722263";
-const B = "917902708908";
+const A = "+919495722263";
+const B = "+917902708908";
 
 const main = async () => {
   for (let i = 0; i < 100; i++) {
